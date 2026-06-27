@@ -2,9 +2,25 @@
   "name": "css-typed-om-polyfill",
   "version": "1.0.0",
   "description": "This project aims to provide a complete TypeScript polyfill for the [CSS Typed OM Level 1 Specification](https://www.w3.org/TR/css-typed-om-1/).",
-  "main": "index.js",
+  "main": "build/index.cjs",
+  "module": "build/index.js",
+  "types": "build/index.d.ts",
+  "unpkg": "build/css-typed-om-polyfill.iife.js",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "require": "./build/index.cjs"
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "clean": "rm -rf ./build",
+    "prebuild": "npm run clean",
+    "build": "npm run build:module && npm run build:cjs && npm run build:iife && npm run build:types",
+    "build:module": "esbuild src/index.ts --sourcemap --bundle --outfile=build/index.js --platform=browser --format=esm",
+    "build:cjs": "esbuild src/index.ts --sourcemap --bundle --outfile=build/index.cjs --platform=browser --format=cjs",
+    "build:iife": "esbuild src/index.ts --bundle --format=iife --outfile=build/css-typed-om-polyfill.iife.js",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outFile build/index.d.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,6 +28,7 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "esbuild": "^0.28.1",
     "jsdom": "^29.1.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
