@@ -1,0 +1,436 @@
+import {
+  Token,
+  tokenizeString,
+  IdentToken,
+  FunctionToken,
+  NumberToken,
+  PercentageToken,
+  DimensionToken,
+  CommaToken,
+  WhitespaceToken,
+  RightParenthesisToken,
+  LeftParenthesisToken,
+  DelimToken,
+  UrlToken,
+  StringToken,
+  HashToken,
+  AtKeywordToken
+} from './tokenizer';
+import { CSSStyleValue, CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue, type CSSUnparsedSegment } from '../css-style-value';
+import { CSSNumericValue, CSSUnitValue } from '../css-numeric-value';
+import { parseCSSNumericValue } from './css-numeric-parser';
+import {
+  CSSTransformValue,
+  CSSTransformComponent,
+  CSSTranslate,
+  CSSRotate,
+  CSSScale,
+  CSSSkew,
+  CSSSkewX,
+  CSSSkewY,
+  CSSPerspective,
+  CSSMatrixComponent
+} from '../css-transform-value';
+import {
+  CSSColorValue,
+  CSSRGB,
+  CSSHSL,
+  CSSHWB,
+  CSSLab,
+  CSSLCH,
+  CSSOKLab,
+  CSSOKLCH,
+  CSSColor
+} from '../css-color-value';
+
+const colorNames: Record<string, [number, number, number, number?]> = {
+  transparent: [0, 0, 0, 0] as any,
+  black: [0, 0, 0],
+  silver: [192, 192, 192],
+  gray: [128, 128, 128],
+  white: [255, 255, 255],
+  maroon: [128, 0, 0],
+  red: [255, 0, 0],
+  purple: [128, 0, 128],
+  fuchsia: [255, 0, 255],
+  green: [0, 128, 0],
+  lime: [0, 255, 0],
+  olive: [128, 128, 0],
+  yellow: [255, 255, 0],
+  navy: [0, 0, 128],
+  blue: [0, 0, 255],
+  teal: [0, 128, 128],
+  aqua: [0, 255, 255],
+  orange: [255, 165, 0]
+};
+
+export function parseCSSValue(property: string, cssText: string): CSSStyleValue {
+  const trimmed = cssText.trim();
+  if (trimmed === '') {
+    throw new SyntaxError('Empty CSS text');
+  }
+
+  // 1. Try to parse as a numeric value
+  try {
+    return parseCSSNumericValue(trimmed);
+  } catch (e) {}
+
+  // 2. Tokenize and parse other values
+  const tokens = tokenizeString(trimmed);
+  if (tokens.length === 0) {
+    throw new SyntaxError('Invalid CSS value');
+  }
+
+  // Helper: check if it contains var()
+  const hasVar = tokens.some((t: Token) => t instanceof FunctionToken && t.value.toLowerCase() === 'var');
+  if (hasVar) {
+    return parseUnparsedValue(tokens);
+  }
+
+  // 3. Try to parse as a transform value (if property is transform or if it looks like one)
+  if (property.toLowerCase() === 'transform' || isTransformValue(tokens)) {
+    try {
+      return parseTransformValue(tokens);
+    } catch (e) {}
+  }
+
+  // 4. Try to parse as a color value (if property is color/background-color/etc. or if it looks like one)
+  if (property.toLowerCase().includes('color') || isColorValue(tokens, trimmed)) {
+    try {
+      return parseColorValue(tokens, trimmed);
+    } catch (e) {}
+  }
+
+  // 5. Try to parse as keyword
+  if (tokens.length === 1 && tokens[0] instanceof IdentToken) {
+    return new CSSKeywordValue(tokens[0].value);
+  }
+
+  // 6. Fallback to CSSUnparsedValue
+  return parseUnparsedValue(tokens);
+}
+
+export function parseAllCSSValues(property: string, cssText: string): CSSStyleValue[] {
+  const trimmed = cssText.trim();
+  if (trimmed === '') {
+    return [];
+  }
+
+  // Split by top-level commas
+  const tokens = tokenizeString(trimmed);
+  const parts: Token[][] = [];
+  let currentPart: Token[] = [];
+  let parenLevel = 0;
+
+  for (const token of tokens) {
+    if (token instanceof LeftParenthesisToken || token instanceof FunctionToken) {
+      parenLevel++;
+      currentPart.push(token);
+    } else if (token instanceof RightParenthesisToken) {
+      parenLevel--;
+      currentPart.push(token);
+    } else if (token instanceof CommaToken && parenLevel === 0) {
+      parts.push(currentPart);
+      currentPart = [];
+    } else {
+      currentPart.push(token);
+    }
+  }
+  if (currentPart.length > 0) {
+    parts.push(currentPart);
+  }
+
+  return parts.map(part => {
+    const partText = part.map(t => {
+      if (t instanceof WhitespaceToken) return ' ';
+      if (t instanceof DelimToken) return t.value;
+      if (t instanceof IdentToken) return t.value;
+      if (t instanceof FunctionToken) return `${t.value}(`;
+      if (t instanceof NumberToken) return `${t.value}`;
+      if (t instanceof PercentageToken) return `${t.value}%`;
+      if (t instanceof DimensionToken) return `${t.value}${t.unit}`;
+      if (t instanceof CommaToken) return ',';
+      if (t instanceof LeftParenthesisToken) return '(';
+      if (t instanceof RightParenthesisToken) return ')';
+      if (t instanceof UrlToken) return `url(${t.value})`;
+      if (t instanceof StringToken) return `"${t.value}"`;
+      if (t instanceof HashToken) return `#${t.value}`;
+      if (t instanceof AtKeywordToken) return `@${t.value}`;
+      return '';
+    }).join('').trim();
+    return parseCSSValue(property, partText);
+  });
+}
+
+import { registerParsers } from '../css-style-value';
+import { registerColorParser } from '../css-color-value';
+
+registerParsers(parseCSSValue, parseAllCSSValues);
+registerColorParser(parseColor);
+
+export function parseColor(cssText: string): CSSColorValue | CSSStyleValue {
+  const trimmed = cssText.trim();
+  const tokens = tokenizeString(trimmed);
+  return parseColorValue(tokens, trimmed);
+}
+
+function isTransformValue(tokens: Token[]): boolean {
+  const transformFnNames = new Set([
+    'translate', 'translate3d', 'translatex', 'translatey', 'translatez',
+    'rotate', 'rotate3d', 'scale', 'scale3d', 'scalex', 'scaley', 'scalez',
+    'skew', 'skewx', 'skewy', 'perspective', 'matrix', 'matrix3d'
+  ]);
+  return tokens.some(t => t instanceof FunctionToken && transformFnNames.has(t.value.toLowerCase()));
+}
+
+function isColorValue(tokens: Token[], cssText: string): boolean {
+  if (cssText.startsWith('#')) return true;
+  if (tokens.length === 1 && tokens[0] instanceof IdentToken && colorNames[tokens[0].value.toLowerCase()]) {
+    return true;
+  }
+  const colorFnNames = new Set(['rgb', 'rgba', 'hsl', 'hsla', 'hwb', 'lab', 'lch', 'oklab', 'oklch', 'color']);
+  return tokens.some(t => t instanceof FunctionToken && colorFnNames.has(t.value.toLowerCase()));
+}
+
+function parseTransformValue(tokens: Token[]): CSSTransformValue {
+  const components: CSSTransformComponent[] = [];
+  let i = 0;
+
+  while (i < tokens.length) {
+    const token = tokens[i];
+    if (token instanceof WhitespaceToken) {
+      i++;
+      continue;
+    }
+    if (!(token instanceof FunctionToken)) {
+      throw new SyntaxError('Expected transform function');
+    }
+
+    const name = token.value.toLowerCase();
+    const args: Token[] = [];
+    i++; // consume function token
+
+    let parenLevel = 1;
+    while (i < tokens.length && parenLevel > 0) {
+      const argToken = tokens[i]!;
+      if (argToken instanceof LeftParenthesisToken || argToken instanceof FunctionToken) {
+        parenLevel++;
+      } else if (argToken instanceof RightParenthesisToken) {
+        parenLevel--;
+      }
+      if (parenLevel > 0) {
+        args.push(argToken);
+      }
+      i++;
+    }
+
+    components.push(parseTransformComponent(name, args));
+  }
+
+  return CSSTransformValue.create(components);
+}
+
+function parseTransformComponent(name: string, argTokens: Token[]): CSSTransformComponent {
+  // Filter out whitespace and commas
+  const args = argTokens.filter(t => !(t instanceof WhitespaceToken || t instanceof CommaToken));
+
+  const reifyArg = (t: Token | undefined): CSSNumericValue => {
+    if (!t) throw new SyntaxError('Missing transform argument');
+    if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'number');
+    if (t instanceof PercentageToken) return new CSSUnitValue(t.value, 'percent');
+    if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
+    throw new SyntaxError('Invalid transform argument');
+  };
+
+  switch (name) {
+    case 'translate':
+      return new CSSTranslate(reifyArg(args[0]), reifyArg(args[1]));
+    case 'translate3d':
+      return new CSSTranslate(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]));
+    case 'translatex':
+      return new CSSTranslate(reifyArg(args[0]), new CSSUnitValue(0, 'px'));
+    case 'translatey':
+      return new CSSTranslate(new CSSUnitValue(0, 'px'), reifyArg(args[0]));
+    case 'translatez':
+      return new CSSTranslate(new CSSUnitValue(0, 'px'), new CSSUnitValue(0, 'px'), reifyArg(args[0]));
+    case 'rotate':
+      return new CSSRotate(reifyArg(args[0]));
+    case 'rotate3d':
+      return new CSSRotate(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), reifyArg(args[3]));
+    case 'scale':
+      return new CSSScale(reifyArg(args[0]), args[1] ? reifyArg(args[1]) : reifyArg(args[0]));
+    case 'scale3d':
+      return new CSSScale(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]));
+    case 'scalex':
+      return new CSSScale(reifyArg(args[0]), 1);
+    case 'scaley':
+      return new CSSScale(1, reifyArg(args[0]));
+    case 'scalez':
+      return new CSSScale(1, 1, reifyArg(args[0]));
+    case 'skew':
+      return new CSSSkew(reifyArg(args[0]), reifyArg(args[1]));
+    case 'skewx':
+      return new CSSSkewX(reifyArg(args[0]));
+    case 'skewy':
+      return new CSSSkewY(reifyArg(args[0]));
+    case 'perspective':
+      return new CSSPerspective(args[0] instanceof IdentToken && args[0].value.toLowerCase() === 'none' ? new CSSKeywordValue('none') : reifyArg(args[0]));
+    case 'matrix': {
+      const vals = args.map(t => (t as NumberToken).value);
+      return new CSSMatrixComponent(new DOMMatrix([vals[0]!, vals[1]!, vals[2]!, vals[3]!, vals[4]!, vals[5]!]));
+    }
+    case 'matrix3d': {
+      const vals = args.map(t => (t as NumberToken).value);
+      return new CSSMatrixComponent(new DOMMatrix(vals));
+    }
+    default:
+      throw new SyntaxError(`Unknown transform function: ${name}`);
+  }
+}
+
+function parseColorValue(tokens: Token[], cssText: string): CSSColorValue | CSSStyleValue {
+  // 1. Hex color
+  if (cssText.startsWith('#')) {
+    const hex = cssText.slice(1);
+    let r = 0, g = 0, b = 0, a = 1;
+    if (hex.length === 3 || hex.length === 4) {
+      r = parseInt(hex[0]! + hex[0]!, 16);
+      g = parseInt(hex[1]! + hex[1]!, 16);
+      b = parseInt(hex[2]! + hex[2]!, 16);
+      if (hex.length === 4) a = parseInt(hex[3]! + hex[3]!, 16) / 255;
+    } else if (hex.length === 6 || hex.length === 8) {
+      r = parseInt(hex.slice(0, 2), 16);
+      g = parseInt(hex.slice(2, 4), 16);
+      b = parseInt(hex.slice(4, 6), 16);
+      if (hex.length === 8) a = parseInt(hex.slice(6, 8), 16) / 255;
+    } else {
+      throw new SyntaxError('Invalid hex color');
+    }
+    return new CSSRGB(new CSSUnitValue(r, 'number'), new CSSUnitValue(g, 'number'), new CSSUnitValue(b, 'number'), new CSSUnitValue(a, 'number'));
+  }
+
+  // 2. Named color
+  if (tokens.length === 1 && tokens[0] instanceof IdentToken) {
+    const name = tokens[0].value.toLowerCase();
+    const rgb = colorNames[name];
+    if (rgb) {
+      const alpha = typeof rgb[3] === 'number' ? rgb[3] : 1;
+      return new CSSRGB(new CSSUnitValue(rgb[0], 'number'), new CSSUnitValue(rgb[1], 'number'), new CSSUnitValue(rgb[2], 'number'), new CSSUnitValue(alpha, 'number'));
+    }
+  }
+
+  // 3. Color function
+  if (tokens[0] instanceof FunctionToken) {
+    const name = tokens[0].value.toLowerCase();
+    // Filter out commas, slashes, etc.
+    const args = tokens.slice(1).filter(t => !(t instanceof WhitespaceToken || t instanceof CommaToken || (t instanceof DelimToken && t.value === '/')));
+    // Remove the trailing RightParenthesisToken
+    if (args[args.length - 1] instanceof RightParenthesisToken) {
+      args.pop();
+    }
+
+    const reifyArg = (t: Token | undefined): CSSNumericValue | CSSKeywordValue => {
+      if (!t) throw new SyntaxError('Missing color argument');
+      if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'number');
+      if (t instanceof PercentageToken) return new CSSUnitValue(t.value, 'percent');
+      if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
+      if (t instanceof IdentToken) return new CSSKeywordValue(t.value);
+      throw new SyntaxError('Invalid color argument');
+    };
+
+    switch (name) {
+      case 'rgb':
+      case 'rgba':
+        return new CSSRGB(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+      case 'hsl':
+      case 'hsla':
+        return new CSSHSL(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+      case 'hwb':
+        return new CSSHWB(reifyArg(args[0]) as CSSNumericValue, reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+      case 'lab':
+        return new CSSLab(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+      case 'lch':
+        return new CSSLCH(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+      case 'oklab':
+        return new CSSOKLab(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+      case 'oklch':
+        return new CSSOKLCH(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+      case 'color': {
+        const colorSpace = args[0] as IdentToken;
+        const channels = args.slice(1, 4).map(reifyArg);
+        const alpha = args[4] ? reifyArg(args[4]) : new CSSUnitValue(1, 'number');
+        return new CSSColor(new CSSKeywordValue(colorSpace.value), channels, alpha);
+      }
+    }
+  }
+
+  throw new SyntaxError('Invalid color value');
+}
+
+function parseUnparsedValue(tokens: Token[]): CSSUnparsedValue {
+  const segments: CSSUnparsedSegment[] = [];
+  let currentStr = '';
+
+  let i = 0;
+  while (i < tokens.length) {
+    const token = tokens[i];
+    if (token instanceof FunctionToken && token.value.toLowerCase() === 'var') {
+      if (currentStr !== '') {
+        segments.push(currentStr);
+        currentStr = '';
+      }
+      // Parse var reference
+      i++; // consume var
+      const varArgs: Token[] = [];
+      let parenLevel = 1;
+      while (i < tokens.length && parenLevel > 0) {
+        const t = tokens[i]!;
+        if (t instanceof LeftParenthesisToken || t instanceof FunctionToken) {
+          parenLevel++;
+        } else if (t instanceof RightParenthesisToken) {
+          parenLevel--;
+        }
+        if (parenLevel > 0) {
+          varArgs.push(t);
+        }
+        i++;
+      }
+
+      // First arg is the variable name
+      const cleanArgs = varArgs.filter(t => !(t instanceof WhitespaceToken || t instanceof CommaToken));
+      const varNameToken = cleanArgs[0];
+      if (!(varNameToken instanceof IdentToken) || !varNameToken.value.startsWith('--')) {
+        throw new SyntaxError('var() first argument must be a custom property name');
+      }
+
+      let fallback: CSSUnparsedValue | null = null;
+      // If there is a comma, the rest is the fallback
+      const commaIndex = varArgs.findIndex(t => t instanceof CommaToken);
+      if (commaIndex !== -1) {
+        const fallbackTokens = varArgs.slice(commaIndex + 1);
+        fallback = parseUnparsedValue(fallbackTokens);
+      }
+
+      segments.push(new CSSVariableReferenceValue(varNameToken.value, fallback));
+    } else {
+      // Append token representation to currentStr
+      if (token instanceof WhitespaceToken) currentStr += ' ';
+      else if (token instanceof DelimToken) currentStr += token.value;
+      else if (token instanceof IdentToken) currentStr += token.value;
+      else if (token instanceof FunctionToken) currentStr += `${token.value}(`;
+      else if (token instanceof NumberToken) currentStr += `${token.value}`;
+      else if (token instanceof PercentageToken) currentStr += `${token.value}%`;
+      else if (token instanceof DimensionToken) currentStr += `${token.value}${token.unit}`;
+      else if (token instanceof CommaToken) currentStr += ',';
+      else if (token instanceof LeftParenthesisToken) currentStr += '(';
+      else if (token instanceof RightParenthesisToken) currentStr += ')';
+      i++;
+    }
+  }
+
+  if (currentStr !== '') {
+    segments.push(currentStr);
+  }
+
+  return CSSUnparsedValue.create(segments);
+}

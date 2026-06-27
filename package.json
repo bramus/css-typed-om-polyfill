@@ -1,0 +1,19 @@
+{
+  "name": "css-typed-om-polyfill",
+  "version": "1.0.0",
+  "description": "This project aims to provide a complete TypeScript polyfill for the [CSS Typed OM Level 1 Specification](https://www.w3.org/TR/css-typed-om-1/).",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}
