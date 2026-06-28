@@ -1,5 +1,5 @@
 import { CSSMathValue } from './css-math-value';
-import { CSSNumericValue, type CSSNumericType, toNumericValue, typesEqual } from './css-numeric-value';
+import { CSSNumericValue, type CSSNumericType, toNumericValue, typesEqual, type CSSNumberish } from './css-numeric-value';
 
 export class CSSMathClamp extends CSSMathValue {
   public lower: CSSNumericValue;

@@ -28,9 +28,25 @@ export class CSSNumericArray {
     }) as any;
   }
 
-  *[Symbol.iterator](): Iterator<CSSNumericValue> {
+  *[Symbol.iterator](): IterableIterator<CSSNumericValue> {
     for (const val of this._values) {
       yield val;
     }
+  }
+
+  forEach(callbackfn: (value: CSSNumericValue, key: number, parent: CSSNumericArray) => void, thisArg?: any): void {
+    this._values.forEach((val, index) => callbackfn.call(thisArg, val, index, this));
+  }
+
+  entries(): IterableIterator<[number, CSSNumericValue]> {
+    return this._values.entries();
+  }
+
+  keys(): IterableIterator<number> {
+    return this._values.keys();
+  }
+
+  values(): IterableIterator<CSSNumericValue> {
+    return this._values.values();
   }
 }

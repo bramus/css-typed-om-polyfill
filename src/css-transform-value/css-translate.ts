@@ -3,9 +3,9 @@ import { CSSNumericValue, CSSUnitValue, matchesLengthPercentage, matchesLength }
 
 // https://drafts.css-houdini.org/css-typed-om-1/#csstranslate
 export class CSSTranslate extends CSSTransformComponent {
-  private _x: CSSNumericValue;
-  private _y: CSSNumericValue;
-  private _z: CSSNumericValue;
+  private _x!: CSSNumericValue;
+  private _y!: CSSNumericValue;
+  private _z!: CSSNumericValue;
   private _is2D: boolean;
 
   constructor(x: CSSNumericValue, y: CSSNumericValue, z?: CSSNumericValue) {

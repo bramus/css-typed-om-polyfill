@@ -3,7 +3,7 @@ import { CSSNumericValue, matchesAngle } from '../css-numeric-value';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssskewx
 export class CSSSkewX extends CSSTransformComponent {
-  private _ax: CSSNumericValue;
+  private _ax!: CSSNumericValue;
 
   constructor(ax: CSSNumericValue) {
     super();

@@ -6,7 +6,7 @@ export type CSSPerspectiveValue = CSSNumericValue | CSSKeywordValue;
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssperspective
 export class CSSPerspective extends CSSTransformComponent {
-  private _length: CSSPerspectiveValue;
+  private _length!: CSSPerspectiveValue;
 
   constructor(length: CSSPerspectiveValue) {
     super();

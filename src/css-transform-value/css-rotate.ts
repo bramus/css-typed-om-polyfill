@@ -3,10 +3,10 @@ import { CSSNumericValue, type CSSNumberish, toNumericValue, matchesAngle } from
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssrotate
 export class CSSRotate extends CSSTransformComponent {
-  private _x: CSSNumberish;
-  private _y: CSSNumberish;
-  private _z: CSSNumberish;
-  private _angle: CSSNumericValue;
+  private _x!: CSSNumberish;
+  private _y!: CSSNumberish;
+  private _z!: CSSNumberish;
+  private _angle!: CSSNumericValue;
   private _is2D: boolean;
 
   constructor(angle: CSSNumericValue);

@@ -1,5 +1,7 @@
 import { CSSStyleValue } from '../css-style-value';
 import { parseCSSNumericValue, createSumValue, to, toSum } from '../parser/css-numeric-parser';
+import type { CSSUnitValue } from './css-unit-value';
+import type { CSSMathSum } from './css-math-sum';
 
 export type CSSNumberish = number | CSSNumericValue;
 
@@ -11,7 +13,7 @@ export interface CSSNumericType {
   resolution: number;
   flex: number;
   percent: number;
-  percentHint?: 'length' | 'angle' | 'time' | 'frequency' | 'resolution' | 'flex';
+  percentHint?: 'length' | 'angle' | 'time' | 'frequency' | 'resolution' | 'flex' | undefined;
 }
 
 // Registry for subclasses to avoid circular dependencies
@@ -270,7 +272,7 @@ export function matchesPercentage(type: CSSNumericType): boolean {
          type.frequency === 0 &&
          type.resolution === 0 &&
          type.flex === 0 &&
-         (type.percentHint === null || type.percentHint === undefined || type.percentHint === 'percent');
+         (type.percentHint === null || type.percentHint === undefined);
 }
 
 export function matchesLengthPercentage(type: CSSNumericType): boolean {

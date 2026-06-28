@@ -3,9 +3,9 @@ import { type CSSNumberish, toNumericValue } from '../css-numeric-value';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssscale
 export class CSSScale extends CSSTransformComponent {
-  private _x: CSSNumberish;
-  private _y: CSSNumberish;
-  private _z: CSSNumberish;
+  private _x!: CSSNumberish;
+  private _y!: CSSNumberish;
+  private _z!: CSSNumberish;
   private _is2D: boolean;
 
   constructor(x: CSSNumberish, y: CSSNumberish, z?: CSSNumberish) {
