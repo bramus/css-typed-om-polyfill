@@ -1,9 +1,12 @@
 import { CSSMathValue } from './css-math-value';
-import { CSSNumericValue, type CSSNumericType } from './css-numeric-value';
+import { CSSNumericValue, type CSSNumericType, type CSSNumberish, toNumericValue } from './css-numeric-value';
 
 export class CSSMathNegate extends CSSMathValue {
-  constructor(public value: CSSNumericValue) {
+  readonly value: CSSNumericValue;
+
+  constructor(value: CSSNumberish) {
     super();
+    this.value = toNumericValue(value);
   }
 
   get operator(): string {

@@ -1,6 +1,6 @@
 import { CSSMathValue } from './css-math-value';
 import { CSSNumericArray } from './css-numeric-array';
-import { type CSSNumberish, type CSSNumericType, toNumericValue, createEmptyType } from './css-numeric-value';
+import { type CSSNumberish, type CSSNumericType, toNumericValue, createEmptyType, cleanType, multiplyTypes } from './css-numeric-value';
 import { CSSMathSum } from './css-math-sum';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssmathproduct
@@ -11,9 +11,10 @@ export class CSSMathProduct extends CSSMathValue {
     super();
     const values = args.map(toNumericValue);
     if (values.length === 0) {
-      throw new TypeError('CSSMathProduct requires at least one argument');
+      throw new DOMException('CSSMathProduct requires at least one argument', 'SyntaxError');
     }
     this.values = CSSNumericArray.create(values);
+    this.type();
   }
 
   get operator(): string {
@@ -21,22 +22,13 @@ export class CSSMathProduct extends CSSMathValue {
   }
 
   type(): CSSNumericType {
-    const result = createEmptyType();
+    let result = createEmptyType();
     for (const val of this.values) {
-      const t = val.type();
-      result.length += t.length;
-      result.angle += t.angle;
-      result.time += t.time;
-      result.frequency += t.frequency;
-      result.resolution += t.resolution;
-      result.flex += t.flex;
-      result.percent += t.percent;
-      if (t.percentHint) {
-        if (result.percentHint && result.percentHint !== t.percentHint) {
-          throw new TypeError('Incompatible percent hints');
-        }
-        result.percentHint = t.percentHint;
+      const nextType = multiplyTypes(result, val.type());
+      if (!nextType) {
+        throw new TypeError('Incompatible percent hints');
       }
+      result = nextType;
     }
     return result;
   }

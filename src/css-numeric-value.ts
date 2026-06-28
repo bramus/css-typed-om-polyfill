@@ -6,6 +6,7 @@ import { CSSMathNegate } from './css-numeric-value/css-math-negate';
 import { CSSMathInvert } from './css-numeric-value/css-math-invert';
 import { CSSMathMin } from './css-numeric-value/css-math-min';
 import { CSSMathMax } from './css-numeric-value/css-math-max';
+import { CSSMathClamp } from './css-numeric-value/css-math-clamp';
 
 registerNumericClasses({
   UnitValue: CSSUnitValue,
@@ -15,6 +16,7 @@ registerNumericClasses({
   MathInvert: CSSMathInvert,
   MathMin: CSSMathMin,
   MathMax: CSSMathMax,
+  MathClamp: CSSMathClamp,
 });
 
 export * from './css-numeric-value/css-numeric-value';

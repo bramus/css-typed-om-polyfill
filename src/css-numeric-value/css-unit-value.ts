@@ -1,10 +1,12 @@
-import { CSSNumericValue, type CSSNumericType, createEmptyType } from './css-numeric-value';
-import { createAType } from '../parser/css-numeric-parser';
+import { CSSNumericValue, type CSSNumericType } from './css-numeric-value';
+import { createAType } from '../parser/unit-utils';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssunitvalue
 export class CSSUnitValue extends CSSNumericValue {
+  readonly unit: string;
+
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssunitvalue-cssunitvalue
-  constructor(public value: number, public unit: string) {
+  constructor(public value: number, unit: string) {
     super();
     if (typeof value !== 'number' || isNaN(value)) {
       throw new TypeError('CSSUnitValue value must be a number');
@@ -12,24 +14,15 @@ export class CSSUnitValue extends CSSNumericValue {
     if (typeof unit !== 'string') {
       throw new TypeError('CSSUnitValue unit must be a string');
     }
+    this.unit = unit.toLowerCase();
+    if (!createAType(this.unit)) {
+      throw new TypeError(`Unknown unit: ${unit}`);
+    }
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssunitvalue-type
   type(): CSSNumericType {
-    const t = createEmptyType();
-    if (this.unit === 'number') {
-      return t;
-    }
-    if (this.unit === 'percent') {
-      t.percent = 1;
-      return t;
-    }
-    const baseType = createAType(this.unit);
-    if (!baseType) {
-      throw new TypeError(`Unknown unit: ${this.unit}`);
-    }
-    Object.assign(t, baseType);
-    return t;
+    return createAType(this.unit)!;
   }
 
   toString(): string {

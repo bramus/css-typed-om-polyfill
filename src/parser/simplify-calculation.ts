@@ -11,6 +11,7 @@ import {
   CSSMathClamp
 } from '../css-numeric-value';
 import { isCanonical } from '../utils';
+import { getSetOfCompatibleUnits, convertCSSUnitValue, type UnitGroup } from './unit-utils';
 
 export interface Info {
   percentageReference?: CSSUnitValue;
@@ -175,15 +176,11 @@ export function simplifyCalculation(root: CSSNumericValue, info: Info = {}): CSS
 
   // If root is a Negate node:
   if (root instanceof CSSMathNegate) {
-    // 1. If root’s child is a numeric value, return an equivalent numeric value, but with the value negated (0 - value).
-    if (root.value instanceof CSSUnitValue) {
-      return new CSSUnitValue(0 - root.value.value, root.value.unit);
-    }
-    // 2. If root’s child is a Negate node, return the child’s child.
-    else if (root.value instanceof CSSMathNegate) {
+    // 1. If root’s child is a Negate node, return the child’s child.
+    if (root.value instanceof CSSMathNegate) {
       return root.value.value;
     }
-    // 3. Return root.
+    // 2. Return root.
     else {
       return root;
     }
@@ -216,21 +213,49 @@ export function simplifyCalculation(root: CSSNumericValue, info: Info = {}): CSS
       }
     }
 
-    // 2. For each set of root’s children that are numeric values with identical units, remove those children and
-    //    replace them with a single numeric value containing the sum of the removed nodes, and with the same unit.
-    function sumValuesWithSameUnit(values: CSSNumericValue[]): CSSNumericValue[] {
+    // 2. For each set of root’s children that are numeric values with compatible units, remove those children and
+    //    replace them with a single numeric value containing the sum of the removed nodes.
+    function sumValuesWithCompatibleUnits(values: CSSNumericValue[]): CSSNumericValue[] {
       const numericValues = values.filter((c): c is CSSUnitValue => c instanceof CSSUnitValue);
       const nonNumericValues = values.filter((c) => !(c instanceof CSSUnitValue));
 
-      const summedNumericValues = Array.from(groupBy(numericValues, "unit").entries())
-        .map(([unit, unitValues]) => {
-          const sum = unitValues.reduce((a, { value }) => a + value, 0);
-          return new CSSUnitValue(sum, unit);
-        });
+      const groups = new Map<string | UnitGroup, CSSUnitValue[]>();
+      for (const val of numericValues) {
+        const group = getSetOfCompatibleUnits(val.unit);
+        const key = group || val.unit;
+        if (groups.has(key)) {
+          groups.get(key)!.push(val);
+        } else {
+          groups.set(key, [val]);
+        }
+      }
+
+      const summedNumericValues: CSSUnitValue[] = [];
+      for (const [key, groupValues] of groups.entries()) {
+        if (typeof key === 'string') {
+          const sum = groupValues.reduce((a, { value }) => a + value, 0);
+          summedNumericValues.push(new CSSUnitValue(sum, key));
+        } else {
+          const firstUnit = groupValues[0]!.unit;
+          const allSameUnit = groupValues.every(v => v.unit === firstUnit);
+          if (allSameUnit) {
+            const sum = groupValues.reduce((a, { value }) => a + value, 0);
+            summedNumericValues.push(new CSSUnitValue(sum, firstUnit));
+          } else {
+            const canonicalUnit = key.canonicalUnit!;
+            const sum = groupValues.reduce((a, v) => {
+              const converted = convertCSSUnitValue(v, canonicalUnit);
+              return a + (converted ? converted.value : v.value);
+            }, 0);
+            summedNumericValues.push(new CSSUnitValue(sum, canonicalUnit));
+          }
+        }
+      }
+
       return [...nonNumericValues, ...summedNumericValues];
     }
 
-    children = sumValuesWithSameUnit(children);
+    children = sumValuesWithCompatibleUnits(children);
 
     // 3. If root has only a single child at this point, return the child.
     //    Otherwise, return root.
@@ -288,9 +313,15 @@ export function simplifyCalculation(root: CSSNumericValue, info: Info = {}): CSS
     //    expressed in the result’s canonical unit.
     if (children.every((child) => (child instanceof CSSUnitValue && isCanonical(child.unit)) ||
       (child instanceof CSSMathInvert && child.value instanceof CSSUnitValue && isCanonical(child.value.unit)))) {
-      const sum = new CSSMathProduct(...children).toSum();
-      if (sum && sum.values.length === 1) {
-        return sum.values[0]!;
+      try {
+        const sum = new CSSMathProduct(...children).toSum();
+        if (sum && sum.values.length === 1) {
+          return sum.values[0]!;
+        }
+      } catch (e) {
+        if (!(e instanceof TypeError)) {
+          throw e;
+        }
       }
     }
 

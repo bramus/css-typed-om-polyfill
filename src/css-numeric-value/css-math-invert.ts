@@ -1,9 +1,12 @@
 import { CSSMathValue } from './css-math-value';
-import { CSSNumericValue, type CSSNumericType } from './css-numeric-value';
+import { CSSNumericValue, type CSSNumericType, type CSSNumberish, toNumericValue, cleanType } from './css-numeric-value';
 
 export class CSSMathInvert extends CSSMathValue {
-  constructor(public value: CSSNumericValue) {
+  readonly value: CSSNumericValue;
+
+  constructor(value: CSSNumberish) {
     super();
+    this.value = toNumericValue(value);
   }
 
   get operator(): string {
@@ -12,15 +15,13 @@ export class CSSMathInvert extends CSSMathValue {
 
   type(): CSSNumericType {
     const t = this.value.type();
-    const result: CSSNumericType = {
-      length: -t.length,
-      angle: -t.angle,
-      time: -t.time,
-      frequency: -t.frequency,
-      resolution: -t.resolution,
-      flex: -t.flex,
-      percent: -t.percent
-    };
+    const result: CSSNumericType = {};
+    const keys: Exclude<keyof CSSNumericType, 'percentHint'>[] = ['length', 'angle', 'time', 'frequency', 'resolution', 'flex', 'percent'];
+    for (const k of keys) {
+      if (t[k] !== undefined && t[k] !== 0) {
+        result[k] = -t[k]!;
+      }
+    }
     if (t.percentHint !== undefined) {
       result.percentHint = t.percentHint;
     }

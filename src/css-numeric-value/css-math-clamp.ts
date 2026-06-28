@@ -1,5 +1,5 @@
 import { CSSMathValue } from './css-math-value';
-import { CSSNumericValue, type CSSNumericType, toNumericValue, typesEqual, type CSSNumberish } from './css-numeric-value';
+import { CSSNumericValue, type CSSNumericType, toNumericValue, addTypes, type CSSNumberish } from './css-numeric-value';
 
 export class CSSMathClamp extends CSSMathValue {
   public lower: CSSNumericValue;
@@ -16,7 +16,8 @@ export class CSSMathClamp extends CSSMathValue {
     const tV = this.value.type();
     const tU = this.upper.type();
 
-    if (!typesEqual(tL, tV) || !typesEqual(tV, tU)) {
+    const tLV = addTypes(tL, tV);
+    if (!tLV || !addTypes(tLV, tU)) {
       throw new TypeError('CSSMathClamp arguments must be of compatible types');
     }
   }
@@ -26,7 +27,8 @@ export class CSSMathClamp extends CSSMathValue {
   }
 
   type(): CSSNumericType {
-    return this.value.type();
+    const tLV = addTypes(this.lower.type(), this.value.type());
+    return addTypes(tLV!, this.upper.type())!;
   }
 
   toString(): string {

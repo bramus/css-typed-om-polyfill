@@ -1,6 +1,6 @@
 import { CSSMathValue } from './css-math-value';
 import { CSSNumericArray } from './css-numeric-array';
-import { type CSSNumberish, type CSSNumericType, toNumericValue } from './css-numeric-value';
+import { type CSSNumberish, type CSSNumericType, toNumericValue, addTypes } from './css-numeric-value';
 
 export class CSSMathMin extends CSSMathValue {
   public values: CSSNumericArray;
@@ -9,9 +9,10 @@ export class CSSMathMin extends CSSMathValue {
     super();
     const values = args.map(toNumericValue);
     if (values.length === 0) {
-      throw new TypeError('CSSMathMin requires at least one argument');
+      throw new DOMException('CSSMathMin requires at least one argument', 'SyntaxError');
     }
     this.values = CSSNumericArray.create(values);
+    this.type();
   }
 
   get operator(): string {
@@ -19,7 +20,15 @@ export class CSSMathMin extends CSSMathValue {
   }
 
   type(): CSSNumericType {
-    return this.values[0]!.type();
+    let result = this.values[0]!.type();
+    for (let i = 1; i < this.values.length; i++) {
+      const next = addTypes(result, this.values[i]!.type());
+      if (!next) {
+        throw new TypeError('CSSNumericValues are not of compatible types for min');
+      }
+      result = next;
+    }
+    return result;
   }
 
   toString(): string {

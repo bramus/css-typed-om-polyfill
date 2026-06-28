@@ -25,87 +25,24 @@ import {
   CSSMathInvert,
   CSSMathMin,
   CSSMathMax,
-  CSSMathClamp
+  CSSMathClamp,
+  addTypes,
+  createEmptyType,
+  type CSSNumericType
 } from '../css-numeric-value';
 import { simplifyCalculation } from './simplify-calculation';
+import {
+  createAType,
+  getSetOfCompatibleUnits,
+  convertCSSUnitValue,
+  type UnitMap,
+  type UnitGroup
+} from './unit-utils';
 
-type UnitMap = Record<string, number>;
 type SumValueItem = [number, UnitMap];
 type SumValue = SumValueItem[];
 
 const baseTypes = ["percent", "length", "angle", "time", "frequency", "resolution", "flex"];
-
-interface UnitGroup {
-  units: Set<string>;
-  compatible?: boolean;
-  canonicalUnit?: string;
-  ratios?: Record<string, number>;
-}
-
-const unitGroups = {
-  fontRelativeLengths: {
-    units: new Set(["em", "rem", "ex", "rex", "cap", "rcap", "ch", "rch", "ic", "ric", "lh", "rlh"])
-  },
-  viewportRelativeLengths: {
-    units: new Set(
-      ["vw", "lvw", "svw", "dvw", "vh", "lvh", "svh", "dvh", "vi", "lvi", "svi", "dvi", "vb", "lvb", "svb", "dvb",
-        "vmin", "lvmin", "svmin", "dvmin", "vmax", "lvmax", "svmax", "dvmax"])
-  },
-  absoluteLengths: {
-    units: new Set(["cm", "mm", "Q", "in", "pt", "pc", "px"]),
-    compatible: true,
-    canonicalUnit: "px",
-    ratios: {
-      "cm": 96 / 2.54, "mm": (96 / 2.54) / 10, "Q": (96 / 2.54) / 40, "in": 96, "pc": 96 / 6, "pt": 96 / 72, "px": 1
-    }
-  },
-  angle: {
-    units: new Set(["deg", "grad", "rad", "turn"]),
-    compatible: true,
-    canonicalUnit: "deg",
-    ratios: {
-      "deg": 1, "grad": 360 / 400, "rad": 180 / Math.PI, "turn": 360
-    }
-  },
-  time: {
-    units: new Set(["s", "ms"]),
-    compatible: true,
-    canonicalUnit: "s",
-    ratios: {
-      "s": 1, "ms": 1 / 1000
-    }
-  },
-  frequency: {
-    units: new Set(["hz", "khz"]),
-    compatible: true,
-    canonicalUnit: "hz",
-    ratios: {
-      "hz": 1, "khz": 1000
-    }
-  },
-  resolution: {
-    units: new Set(["dpi", "dpcm", "dppx"]),
-    compatible: true,
-    canonicalUnit: "dppx",
-    ratios: {
-      "dpi": 1 / 96, "dpcm": 2.54 / 96, "dppx": 1
-    }
-  }
-};
-
-const unitToCompatibleUnitsMap = new Map<string, UnitGroup>();
-for (const group of Object.values(unitGroups) as UnitGroup[]) {
-  if (!group.compatible) {
-    continue;
-  }
-  for (const unit of group.units) {
-    unitToCompatibleUnitsMap.set(unit, group);
-  }
-}
-
-export function getSetOfCompatibleUnits(unit: string): UnitGroup | undefined {
-  return unitToCompatibleUnitsMap.get(unit);
-}
 
 function productOfTwoUnitMaps(units1: UnitMap, units2: UnitMap): UnitMap {
   const result = { ...units1 };
@@ -114,36 +51,65 @@ function productOfTwoUnitMaps(units1: UnitMap, units2: UnitMap): UnitMap {
     if (val2 !== undefined) {
       const val1 = result[unit];
       if (val1 !== undefined) {
-        result[unit] = val1 + val2;
+        const sum = val1 + val2;
+        if (sum === 0) {
+          delete result[unit];
+        } else {
+          result[unit] = sum;
+        }
       } else {
-        result[unit] = val2;
+        if (val2 !== 0) {
+          result[unit] = val2;
+        }
       }
     }
   }
   return result;
 }
 
-export function createAType(unit: string): Record<string, number> | null {
-  if (unit === "number") {
-    return {};
-  } else if (unit === "percent") {
-    return { "percent": 1 };
-  } else if (unitGroups.absoluteLengths.units.has(unit) || unitGroups.fontRelativeLengths.units.has(unit) ||
-    unitGroups.viewportRelativeLengths.units.has(unit)) {
-    return { "length": 1 };
-  } else if (unitGroups.angle.units.has(unit)) {
-    return { "angle": 1 };
-  } else if (unitGroups.time.units.has(unit)) {
-    return { "time": 1 };
-  } else if (unitGroups.frequency.units.has(unit)) {
-    return { "frequency": 1 };
-  } else if (unitGroups.resolution.units.has(unit)) {
-    return { "resolution": 1 };
-  } else if (unit === "fr") {
-    return { "flex": 1 };
-  } else {
+
+
+type CSSNumericTypeNumericKeys = Exclude<keyof CSSNumericType, 'percentHint'>;
+
+function unitMapsEqual(m1: Record<string, number>, m2: Record<string, number>): boolean {
+  const keys1 = Object.keys(m1);
+  const keys2 = Object.keys(m2);
+  if (keys1.length !== keys2.length) return false;
+  for (const k of keys1) {
+    if (m1[k] !== m2[k]) return false;
+  }
+  return true;
+}
+
+function multiplyTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType | null {
+  const result = createEmptyType();
+  for (const key of Object.keys(result) as (keyof CSSNumericType)[]) {
+    if (key === 'percentHint') continue;
+    result[key] = ((t1[key] as number) || 0) + ((t2[key] as number) || 0);
+  }
+  const h1 = t1.percentHint;
+  const h2 = t2.percentHint;
+  if (h1 && h2 && h1 !== h2) {
     return null;
   }
+  result.percentHint = h1 || h2;
+  return result;
+}
+
+function createTypeFromUnitMap(unitMap: UnitMap): CSSNumericType | null {
+  let result = createEmptyType();
+  for (const [unit, power] of Object.entries(unitMap)) {
+    const rawType = createAType(unit);
+    if (rawType === null) return null;
+    const type = createEmptyType();
+    for (const [k, v] of Object.entries(rawType)) {
+      type[k as CSSNumericTypeNumericKeys] = v * power;
+    }
+    const multiplied = multiplyTypes(result, type);
+    if (multiplied === null) return null;
+    result = multiplied;
+  }
+  return result;
 }
 
 export function createSumValue(cssNumericValue: CSSNumericValue): SumValue | null {
@@ -161,9 +127,6 @@ export function createSumValue(cssNumericValue: CSSNumericValue): SumValue | nul
       return [[value, { [unit]: 1 }]];
     }
   } else if (cssNumericValue instanceof CSSMathInvert) {
-    if (!(cssNumericValue.value instanceof CSSUnitValue)) {
-      throw new Error("Not implemented");
-    }
     const values = createSumValue(cssNumericValue.value);
     if (values === null) {
       return null;
@@ -194,15 +157,104 @@ export function createSumValue(cssNumericValue: CSSNumericValue): SumValue | nul
       values = temp;
     }
     return values;
+  } else if (cssNumericValue instanceof CSSMathSum) {
+    const values: SumValue = [];
+    for (const item of cssNumericValue.values) {
+      const val = createSumValue(item);
+      if (val === null) {
+        return null;
+      }
+      for (const subvalue of val) {
+        const existing = values.find(v => unitMapsEqual(v[1], subvalue[1]));
+        if (existing) {
+          existing[0] += subvalue[0];
+        } else {
+          values.push([subvalue[0], { ...subvalue[1] }]);
+        }
+      }
+    }
+    if (values.length > 0) {
+      let sumType = createTypeFromUnitMap(values[0]![1]);
+      if (sumType === null) return null;
+      for (let i = 1; i < values.length; i++) {
+        const nextType = createTypeFromUnitMap(values[i]![1]);
+        if (nextType === null) return null;
+        const added = addTypes(sumType, nextType);
+        if (added === null) return null;
+        sumType = added;
+      }
+    }
+    return values;
+  } else if (cssNumericValue instanceof CSSMathNegate) {
+    const values = createSumValue(cssNumericValue.value);
+    if (values === null) {
+      return null;
+    }
+    for (const item of values) {
+      item[0] = -item[0];
+    }
+    return values;
+  } else if (cssNumericValue instanceof CSSMathMin || cssNumericValue instanceof CSSMathMax) {
+    const isMin = cssNumericValue instanceof CSSMathMin;
+    const args: SumValue[] = [];
+    for (const item of cssNumericValue.values) {
+      const val = createSumValue(item);
+      if (val === null || val.length > 1) {
+        return null;
+      }
+      args.push(val);
+    }
+    if (args.length === 0) return null;
+    const firstUnitMap = args[0]![0]![1];
+    for (let i = 1; i < args.length; i++) {
+      if (!unitMapsEqual(firstUnitMap, args[i]![0]![1])) {
+        return null;
+      }
+    }
+    let targetArg = args[0]![0]!;
+    for (let i = 1; i < args.length; i++) {
+      const current = args[i]![0]!;
+      if (isMin) {
+        if (current[0] < targetArg[0]) {
+          targetArg = current;
+        }
+      } else {
+        if (current[0] > targetArg[0]) {
+          targetArg = current;
+        }
+      }
+    }
+    return [ [targetArg[0], { ...targetArg[1] }] ];
+  } else if (cssNumericValue instanceof CSSMathClamp) {
+    const lowerSum = createSumValue(cssNumericValue.lower);
+    const valueSum = createSumValue(cssNumericValue.value);
+    const upperSum = createSumValue(cssNumericValue.upper);
+
+    if (lowerSum === null || lowerSum.length > 1 ||
+        valueSum === null || valueSum.length > 1 ||
+        upperSum === null || upperSum.length > 1) {
+      return null;
+    }
+
+    const lowerVal = lowerSum[0]!;
+    const valueVal = valueSum[0]!;
+    const upperVal = upperSum[0]!;
+
+    if (!unitMapsEqual(lowerVal[1], valueVal[1]) || !unitMapsEqual(valueVal[1], upperVal[1])) {
+      return null;
+    }
+
+    const resolvedValue = Math.max(lowerVal[0], Math.min(valueVal[0], upperVal[0]));
+    return [ [resolvedValue, { ...valueVal[1] }] ];
   } else {
-    throw new Error("Not implemented");
+    return null;
   }
 }
 
 export function to(cssNumericValue: CSSNumericValue, unit: string): CSSUnitValue {
   const type = createAType(unit);
   if (type === null) {
-    throw new SyntaxError("The string did not match the expected pattern.");
+    throw new DOMException("The string did not match the expected pattern.", "SyntaxError");
   }
 
   const sumValue = createSumValue(cssNumericValue);
@@ -238,36 +290,61 @@ export function createCSSUnitValue(sumValueItem: SumValueItem): CSSUnitValue | n
   }
 }
 
-export function convertCSSUnitValue(cssUnitValue: CSSUnitValue, unit: string): CSSUnitValue | null {
-  if (cssUnitValue.unit === unit) {
-    return cssUnitValue;
-  }
-  const oldUnit = cssUnitValue.unit;
-  const oldValue = cssUnitValue.value;
-  const oldCompatibleUnitGroup = getSetOfCompatibleUnits(oldUnit);
-  const compatibleUnitGroup = getSetOfCompatibleUnits(unit);
-  if (!compatibleUnitGroup || oldCompatibleUnitGroup !== compatibleUnitGroup) {
-    return null;
-  }
-  return new CSSUnitValue(oldValue * compatibleUnitGroup.ratios![oldUnit]! / compatibleUnitGroup.ratios![unit]!, unit);
-}
+
 
 export function toSum(cssNumericValue: CSSNumericValue, ...units: string[]): CSSMathSum {
   if (units && units.length) {
-    throw new Error("Not implemented");
+    for (const unit of units) {
+      if (createAType(unit) === null) {
+        throw new DOMException(`Invalid unit: ${unit}`, 'SyntaxError');
+      }
+    }
+    const uniqueUnits = new Set(units);
+    if (uniqueUnits.size !== units.length) {
+      throw new TypeError("Duplicate units are not allowed");
+    }
   }
 
   const sum = createSumValue(cssNumericValue);
   if (!sum) {
-    throw new TypeError("Type error");
+    throw new TypeError("Failed to create sum value");
   }
 
-  const values = sum.map(item => createCSSUnitValue(item));
-  if (values.some(value => value === null)) {
-    throw new TypeError("Type error");
+  const values: CSSUnitValue[] = [];
+  for (const item of sum) {
+    const val = createCSSUnitValue(item);
+    if (val === null) {
+      throw new TypeError("Failed to create CSSUnitValue from sum item");
+    }
+    values.push(val);
   }
 
-  return new CSSMathSum(...(values as CSSUnitValue[]));
+  if (!units || units.length === 0) {
+    values.sort((a, b) => a.unit.localeCompare(b.unit));
+    return new CSSMathSum(...values);
+  }
+
+  const result: CSSUnitValue[] = [];
+  const remainingValues = [...values];
+
+  for (const unit of units) {
+    let tempValue = 0;
+    for (let i = remainingValues.length - 1; i >= 0; i--) {
+      const value = remainingValues[i]!;
+      const converted = convertCSSUnitValue(value, unit);
+      if (converted !== null) {
+        tempValue += converted.value;
+        remainingValues.splice(i, 1);
+      }
+    }
+    result.push(new CSSUnitValue(tempValue, unit));
+  }
+
+  if (remainingValues.length > 0) {
+    throw new TypeError("Leftover units that were not asked for");
+  }
+
+  return new CSSMathSum(...result);
 }
 
 class CSSFunction {
@@ -508,7 +585,7 @@ function transformToCSSNumericValue(node: any): CSSNumericValue {
       } else if (node.value === 'pi') {
         return new CSSUnitValue(Math.PI, 'number');
       } else {
-        throw new SyntaxError('Invalid math expression');
+        throw new DOMException('Invalid math expression', 'SyntaxError');
       }
     } else {
       return reifyNumericValue(node);
@@ -538,7 +615,7 @@ function reifyMathExpression(num: CSSFunction): CSSNumericValue {
       // Remove leading/trailing whitespace to check for empty arguments
       const trimmed = arg.filter(t => !(t instanceof WhitespaceToken));
       if (trimmed.length === 0) {
-        throw new SyntaxError('Empty argument in math function');
+        throw new DOMException('Empty argument in math function', 'SyntaxError');
       }
       return simplifyCalculation(reifyMathExpression(new CSSFunction('calc', arg)));
     });
@@ -549,14 +626,14 @@ function reifyMathExpression(num: CSSFunction): CSSNumericValue {
       return new CSSMathMax(...parsedArgs);
     } else {
       if (parsedArgs.length !== 3) {
-        throw new SyntaxError('clamp() requires exactly 3 arguments');
+        throw new DOMException('clamp() requires exactly 3 arguments', 'SyntaxError');
       }
       return new CSSMathClamp(parsedArgs[0]!, parsedArgs[1]!, parsedArgs[2]!);
     }
   }
 
   if (num.name !== 'calc') {
-    throw new SyntaxError('Expected calc(), min(), max() or clamp()');
+    throw new DOMException('Expected calc(), min(), max() or clamp()', 'SyntaxError');
   }
 
   const root = convertTokensToAST([...num.values]);
@@ -565,7 +642,7 @@ function reifyMathExpression(num: CSSFunction): CSSNumericValue {
   try {
     simplifiedValue = simplifyCalculation(numericValue);
   } catch (e) {
-    throw new TypeError('Failed to simplify calculation');
+    throw new DOMException('Failed to simplify calculation', 'SyntaxError');
   }
   if (simplifiedValue instanceof CSSUnitValue) {
     return new CSSMathSum(simplifiedValue);
@@ -595,7 +672,7 @@ function reifyNumericValue(num: any): CSSNumericValue {
   else if (num instanceof DimensionToken) {
     return new CSSUnitValue(num.value, num.unit);
   }
-  throw new SyntaxError('Invalid numeric token');
+  throw new DOMException('Invalid numeric token', 'SyntaxError');
 }
 
 // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-parse
@@ -604,19 +681,26 @@ export function parseCSSNumericValue(cssText: string): CSSNumericValue {
   const result = parseComponentValue(cssText);
   // If result is a syntax error, throw a SyntaxError.
   if (result === null) {
-    throw new SyntaxError('Invalid CSS numeric value');
+    throw new DOMException('Invalid CSS numeric value', 'SyntaxError');
   }
   // 2. If result is not a <number-token>, <percentage-token>, <dimension-token>, or a math function, throw a SyntaxError.
   if (!(result instanceof NumberToken || result instanceof PercentageToken || result instanceof DimensionToken || result instanceof CSSFunction)) {
-    throw new SyntaxError('Invalid CSS numeric value');
+    throw new DOMException('Invalid CSS numeric value', 'SyntaxError');
   }
   // 3. If result is a <dimension-token> and creating a type from result’s unit returns failure, throw a SyntaxError.
   if (result instanceof DimensionToken) {
     const type = createAType(result.unit);
     if (type === null) {
-      throw new SyntaxError('Invalid unit');
+      throw new DOMException('Invalid unit', 'SyntaxError');
     }
   }
   // 4. Reify a numeric value result, and return the result.
-  return reifyNumericValue(result);
+  try {
+    return reifyNumericValue(result);
+  } catch (e) {
+    if (e instanceof TypeError || e instanceof RangeError) {
+      throw new DOMException(e.message, 'SyntaxError');
+    }
+    throw e;
+  }
 }

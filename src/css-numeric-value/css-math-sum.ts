@@ -11,9 +11,10 @@ export class CSSMathSum extends CSSMathValue {
     super();
     const values = args.map(toNumericValue);
     if (values.length === 0) {
-      throw new TypeError('CSSMathSum requires at least one argument');
+      throw new DOMException('CSSMathSum requires at least one argument', 'SyntaxError');
     }
     this.values = CSSNumericArray.create(values);
+    this.type();
   }
 
   get operator(): string {

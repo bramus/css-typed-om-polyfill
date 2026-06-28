@@ -1,18 +1,23 @@
 import { CSSStyleValue } from '../css-style-value';
 import { parseCSSNumericValue, createSumValue, to, toSum } from '../parser/css-numeric-parser';
+import { simplifyCalculation } from '../parser/simplify-calculation';
 import type { CSSUnitValue } from './css-unit-value';
 import type { CSSMathSum } from './css-math-sum';
+import type { CSSMathValue } from './css-math-value';
+import type { CSSMathNegate } from './css-math-negate';
+import type { CSSMathInvert } from './css-math-invert';
+import type { CSSMathClamp } from './css-math-clamp';
 
 export type CSSNumberish = number | CSSNumericValue;
 
 export interface CSSNumericType {
-  length: number;
-  angle: number;
-  time: number;
-  frequency: number;
-  resolution: number;
-  flex: number;
-  percent: number;
+  length?: number;
+  angle?: number;
+  time?: number;
+  frequency?: number;
+  resolution?: number;
+  flex?: number;
+  percent?: number;
   percentHint?: 'length' | 'angle' | 'time' | 'frequency' | 'resolution' | 'flex' | undefined;
 }
 
@@ -24,6 +29,7 @@ export let CSSMathNegateClass: any = null;
 export let CSSMathInvertClass: any = null;
 export let CSSMathMinClass: any = null;
 export let CSSMathMaxClass: any = null;
+export let CSSMathClampClass: any = null;
 
 export function registerNumericClasses(classes: {
   UnitValue: any;
@@ -33,6 +39,7 @@ export function registerNumericClasses(classes: {
   MathInvert: any;
   MathMin: any;
   MathMax: any;
+  MathClamp: any;
 }) {
   CSSUnitValueClass = classes.UnitValue;
   CSSMathSumClass = classes.MathSum;
@@ -41,6 +48,7 @@ export function registerNumericClasses(classes: {
   CSSMathInvertClass = classes.MathInvert;
   CSSMathMinClass = classes.MathMin;
   CSSMathMaxClass = classes.MathMax;
+  CSSMathClampClass = classes.MathClamp;
 }
 
 export function toNumericValue(val: CSSNumberish): CSSNumericValue {
@@ -48,6 +56,46 @@ export function toNumericValue(val: CSSNumberish): CSSNumericValue {
     return new CSSUnitValueClass(val, 'number');
   }
   return val;
+}
+
+function equalNumericValue(v1: CSSNumericValue, v2: CSSNumericValue): boolean {
+  if (v1.constructor !== v2.constructor) {
+    return false;
+  }
+  if (v1 instanceof CSSUnitValueClass && v2 instanceof CSSUnitValueClass) {
+    const u1 = v1 as unknown as CSSUnitValue;
+    const u2 = v2 as unknown as CSSUnitValue;
+    return u1.value === u2.value && u1.unit === u2.unit;
+  }
+  if (v1 instanceof CSSMathSumClass || v1 instanceof CSSMathProductClass || v1 instanceof CSSMathMinClass || v1 instanceof CSSMathMaxClass) {
+    const m1 = v1 as unknown as CSSMathSum;
+    const m2 = v2 as unknown as CSSMathSum;
+    const values1 = m1.values;
+    const values2 = m2.values;
+    if (values1.length !== values2.length) {
+      return false;
+    }
+    for (let i = 0; i < values1.length; i++) {
+      if (!equalNumericValue(values1[i]!, values2[i]!)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (v1 instanceof CSSMathNegateClass && v2 instanceof CSSMathNegateClass) {
+    return equalNumericValue((v1 as unknown as CSSMathNegate).value, (v2 as unknown as CSSMathNegate).value);
+  }
+  if (v1 instanceof CSSMathInvertClass && v2 instanceof CSSMathInvertClass) {
+    return equalNumericValue((v1 as unknown as CSSMathInvert).value, (v2 as unknown as CSSMathInvert).value);
+  }
+  if (v1 instanceof CSSMathClampClass && v2 instanceof CSSMathClampClass) {
+    const c1 = v1 as unknown as CSSMathClamp;
+    const c2 = v2 as unknown as CSSMathClamp;
+    return equalNumericValue(c1.value, c2.value) &&
+           equalNumericValue(c1.lower, c2.lower) &&
+           equalNumericValue(c1.upper, c2.upper);
+  }
+  return false;
 }
 
 export abstract class CSSNumericValue extends CSSStyleValue {
@@ -60,86 +108,159 @@ export abstract class CSSNumericValue extends CSSStyleValue {
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-add
   add(...values: CSSNumberish[]): CSSNumericValue {
-    const numerics = [this, ...values.map(toNumericValue)];
-    // Check type compatibility
-    let currentType = numerics[0]!.type();
-    for (let i = 1; i < numerics.length; i++) {
-      const nextType = numerics[i]!.type();
+    const rectifiedValues = values.map(toNumericValue);
+    const allValues: CSSNumericValue[] = [];
+    if (this instanceof CSSMathSumClass || (this as any).operator === 'sum') {
+      allValues.push(...(this as any).values);
+    } else {
+      allValues.push(this);
+    }
+    allValues.push(...rectifiedValues);
+
+    if (allValues.every(v => v instanceof CSSUnitValueClass)) {
+      const units = allValues.map(v => (v as any).unit);
+      const firstUnit = units[0];
+      if (units.every(u => u === firstUnit)) {
+        const sum = allValues.reduce((acc, v) => acc + (v as any).value, 0);
+        return new CSSUnitValueClass(sum, firstUnit);
+      }
+    }
+
+    let currentType = allValues[0]!.type();
+    for (let i = 1; i < allValues.length; i++) {
+      const nextType = allValues[i]!.type();
       const addedType = addTypes(currentType, nextType);
       if (!addedType) {
         throw new TypeError('CSSNumericValues are not of compatible types for addition');
       }
       currentType = addedType;
     }
-    return new CSSMathSumClass(...numerics);
+
+    return new CSSMathSumClass(...allValues);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-sub
   sub(...values: CSSNumberish[]): CSSNumericValue {
-    const numerics = values.map(toNumericValue);
-    const negated = numerics.map(val => new CSSMathNegateClass(val));
+    const rectified = values.map(toNumericValue);
+    const negated = mapNegate(rectified);
     return this.add(...negated);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-mul
   mul(...values: CSSNumberish[]): CSSNumericValue {
-    const numerics = [this, ...values.map(toNumericValue)];
-    return new CSSMathProductClass(...numerics);
+    const rectifiedValues = values.map(toNumericValue);
+    const allValues: CSSNumericValue[] = [];
+    if (this instanceof CSSMathProductClass || (this as any).operator === 'product') {
+      allValues.push(...(this as any).values);
+    } else {
+      allValues.push(this);
+    }
+    allValues.push(...rectifiedValues);
+
+    if (allValues.every(v => v instanceof CSSUnitValueClass && (v as any).unit === 'number')) {
+      const product = allValues.reduce((acc, v) => acc * (v as any).value, 1);
+      return new CSSUnitValueClass(product, 'number');
+    }
+
+    const nonNumberValues = allValues.filter(v => !(v instanceof CSSUnitValueClass && (v as any).unit === 'number'));
+    if (nonNumberValues.length === 1 && allValues.every(v => v instanceof CSSUnitValueClass)) {
+      const unit = (nonNumberValues[0] as any).unit;
+      const product = allValues.reduce((acc, v) => acc * (v as any).value, 1);
+      return new CSSUnitValueClass(product, unit);
+    }
+
+    let currentType = allValues[0]!.type();
+    for (let i = 1; i < allValues.length; i++) {
+      const nextType = allValues[i]!.type();
+      const multipliedType = multiplyTypes(currentType, nextType);
+      if (!multipliedType) {
+        throw new TypeError('CSSNumericValues are not of compatible types for multiplication');
+      }
+      currentType = multipliedType;
+    }
+
+    return new CSSMathProductClass(...allValues);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-div
   div(...values: CSSNumberish[]): CSSNumericValue {
-    const numerics = values.map(toNumericValue);
-    const inverted = numerics.map(val => new CSSMathInvertClass(val));
+    const rectified = values.map(toNumericValue);
+    const inverted = mapInvert(rectified);
     return this.mul(...inverted);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-min
   min(...values: CSSNumberish[]): CSSNumericValue {
-    const numerics = [this, ...values.map(toNumericValue)];
-    const firstType = numerics[0]!.type();
-    for (let i = 1; i < numerics.length; i++) {
-      if (!typesEqual(firstType, numerics[i]!.type())) {
-        throw new TypeError('CSSNumericValues are not of compatible types for min');
+    const rectifiedValues = values.map(toNumericValue);
+    const allValues: CSSNumericValue[] = [];
+    if (this instanceof CSSMathMinClass || (this as any).operator === 'min') {
+      allValues.push(...(this as any).values);
+    } else {
+      allValues.push(this);
+    }
+    allValues.push(...rectifiedValues);
+
+    if (allValues.every(v => v instanceof CSSUnitValueClass)) {
+      const units = allValues.map(v => (v as any).unit);
+      const firstUnit = units[0];
+      if (units.every(u => u === firstUnit)) {
+        const minVal = Math.min(...allValues.map(v => (v as any).value));
+        return new CSSUnitValueClass(minVal, firstUnit);
       }
     }
-    return new CSSMathMinClass(...numerics);
+
+    let currentType = allValues[0]!.type();
+    for (let i = 1; i < allValues.length; i++) {
+      const nextType = allValues[i]!.type();
+      const addedType = addTypes(currentType, nextType);
+      if (!addedType) {
+        throw new TypeError('CSSNumericValues are not of compatible types for min');
+      }
+      currentType = addedType;
+    }
+
+    return new CSSMathMinClass(...allValues);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-max
   max(...values: CSSNumberish[]): CSSNumericValue {
-    const numerics = [this, ...values.map(toNumericValue)];
-    const firstType = numerics[0]!.type();
-    for (let i = 1; i < numerics.length; i++) {
-      if (!typesEqual(firstType, numerics[i]!.type())) {
-        throw new TypeError('CSSNumericValues are not of compatible types for max');
+    const rectifiedValues = values.map(toNumericValue);
+    const allValues: CSSNumericValue[] = [];
+    if (this instanceof CSSMathMaxClass || (this as any).operator === 'max') {
+      allValues.push(...(this as any).values);
+    } else {
+      allValues.push(this);
+    }
+    allValues.push(...rectifiedValues);
+
+    if (allValues.every(v => v instanceof CSSUnitValueClass)) {
+      const units = allValues.map(v => (v as any).unit);
+      const firstUnit = units[0];
+      if (units.every(u => u === firstUnit)) {
+        const maxVal = Math.max(...allValues.map(v => (v as any).value));
+        return new CSSUnitValueClass(maxVal, firstUnit);
       }
     }
-    return new CSSMathMaxClass(...numerics);
+
+    let currentType = allValues[0]!.type();
+    for (let i = 1; i < allValues.length; i++) {
+      const nextType = allValues[i]!.type();
+      const addedType = addTypes(currentType, nextType);
+      if (!addedType) {
+        throw new TypeError('CSSNumericValues are not of compatible types for max');
+      }
+      currentType = addedType;
+    }
+
+    return new CSSMathMaxClass(...allValues);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-equals
   equals(...values: CSSNumberish[]): boolean {
     const numerics = values.map(toNumericValue);
-    const thisSum = createSumValue(this);
-    if (!thisSum) return false;
-
     for (const val of numerics) {
-      const otherSum = createSumValue(val);
-      if (!otherSum || thisSum.length !== otherSum.length) return false;
-      const matched = new Set<number>();
-      for (const item1 of thisSum) {
-        let found = false;
-        for (let i = 0; i < otherSum.length; i++) {
-          if (matched.has(i)) continue;
-          const item2 = otherSum[i]!;
-          if (item1[0] === item2[0] && unitMapsEqual(item1[1], item2[1])) {
-            matched.add(i);
-            found = true;
-            break;
-          }
-        }
-        if (!found) return false;
+      if (!equalNumericValue(this, val)) {
+        return false;
       }
     }
     return true;
@@ -168,24 +289,36 @@ export function createEmptyType(): CSSNumericType {
   };
 }
 
+export function cleanType(type: CSSNumericType): CSSNumericType {
+  const result: any = {};
+  const keys: (keyof CSSNumericType)[] = ['length', 'angle', 'time', 'frequency', 'resolution', 'flex', 'percent'];
+  for (const k of keys) {
+    if (type[k] !== 0 && type[k] !== undefined) {
+      result[k] = type[k];
+    }
+  }
+  if (type.percentHint !== undefined) {
+    result.percentHint = type.percentHint;
+  }
+  return result as CSSNumericType;
+}
+
 export function typesEqual(t1: CSSNumericType, t2: CSSNumericType): boolean {
-  return t1.length === t2.length &&
-         t1.angle === t2.angle &&
-         t1.time === t2.time &&
-         t1.frequency === t2.frequency &&
-         t1.resolution === t2.resolution &&
-         t1.flex === t2.flex &&
-         t1.percent === t2.percent &&
-         t1.percentHint === t2.percentHint;
+  const keys: (keyof CSSNumericType)[] = ['length', 'angle', 'time', 'frequency', 'resolution', 'flex', 'percent'];
+  for (const k of keys) {
+    if ((t1[k] || 0) !== (t2[k] || 0)) return false;
+  }
+  return t1.percentHint === t2.percentHint;
 }
 
 // https://drafts.css-houdini.org/css-typed-om-1/#numeric-typing
 // Section 4.3.2. Numeric Value Typing
 export function applyPercentHint(type: CSSNumericType, hint: string): CSSNumericType {
   const result = { ...type, percentHint: hint as any };
-  if (hint !== 'percent' && result.percent !== 0) {
+  const percent = result.percent || 0;
+  if (hint !== 'percent' && percent !== 0) {
     const key = hint as keyof CSSNumericType;
-    result[key] = ((result[key] as number) || 0) + result.percent;
+    result[key] = ((result[key] as number) || 0) + percent;
     result.percent = 0;
   }
   return result;
@@ -216,11 +349,11 @@ export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType
   if (typesEqual(cleanType1, cleanType2)) {
     Object.assign(finalType, type1);
     finalType.percentHint = type1.percentHint || type2.percentHint;
-    return finalType;
+    return cleanType(finalType);
   }
   
-  const hasPercent1 = type1.percent !== 0;
-  const hasPercent2 = type2.percent !== 0;
+  const hasPercent1 = (type1.percent || 0) !== 0;
+  const hasPercent2 = (type2.percent || 0) !== 0;
   const hasOther1 = hasOtherThanPercent(type1);
   const hasOther2 = hasOtherThanPercent(type2);
   
@@ -236,7 +369,7 @@ export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType
       if (typesEqual(cleanProv1, cleanProv2)) {
         Object.assign(finalType, provType1);
         finalType.percentHint = hint as any;
-        return finalType;
+        return cleanType(finalType);
       }
     }
   }
@@ -244,34 +377,48 @@ export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType
   return null;
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssnumericvalue-multiply-two-types
+export function multiplyTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType | null {
+  const result = createEmptyType();
+  const keys: Exclude<keyof CSSNumericType, 'percentHint'>[] = ['length', 'angle', 'time', 'frequency', 'resolution', 'flex', 'percent'];
+  for (const k of keys) {
+    result[k] = (t1[k] || 0) + (t2[k] || 0);
+  }
+  if (t1.percentHint && t2.percentHint && t1.percentHint !== t2.percentHint) {
+    return null;
+  }
+  result.percentHint = t1.percentHint || t2.percentHint;
+  return cleanType(result);
+}
+
 function hasOtherThanPercent(type: CSSNumericType): boolean {
-  return type.length !== 0 ||
-         type.angle !== 0 ||
-         type.time !== 0 ||
-         type.frequency !== 0 ||
-         type.resolution !== 0 ||
-         type.flex !== 0;
+  return (type.length || 0) !== 0 ||
+         (type.angle || 0) !== 0 ||
+         (type.time || 0) !== 0 ||
+         (type.frequency || 0) !== 0 ||
+         (type.resolution || 0) !== 0 ||
+         (type.flex || 0) !== 0;
 }
 
 export function matchesLength(type: CSSNumericType): boolean {
-  return type.length === 1 &&
-         type.angle === 0 &&
-         type.time === 0 &&
-         type.frequency === 0 &&
-         type.resolution === 0 &&
-         type.flex === 0 &&
-         type.percent === 0 &&
+  return (type.length || 0) === 1 &&
+         (type.angle || 0) === 0 &&
+         (type.time || 0) === 0 &&
+         (type.frequency || 0) === 0 &&
+         (type.resolution || 0) === 0 &&
+         (type.flex || 0) === 0 &&
+         (type.percent || 0) === 0 &&
          (type.percentHint === null || type.percentHint === undefined || type.percentHint === 'length');
 }
 
 export function matchesPercentage(type: CSSNumericType): boolean {
-  return type.percent === 1 &&
-         type.length === 0 &&
-         type.angle === 0 &&
-         type.time === 0 &&
-         type.frequency === 0 &&
-         type.resolution === 0 &&
-         type.flex === 0 &&
+  return (type.percent || 0) === 1 &&
+         (type.length || 0) === 0 &&
+         (type.angle || 0) === 0 &&
+         (type.time || 0) === 0 &&
+         (type.frequency || 0) === 0 &&
+         (type.resolution || 0) === 0 &&
+         (type.flex || 0) === 0 &&
          (type.percentHint === null || type.percentHint === undefined);
 }
 
@@ -280,13 +427,13 @@ export function matchesLengthPercentage(type: CSSNumericType): boolean {
 }
 
 export function matchesAngle(type: CSSNumericType): boolean {
-  return type.angle === 1 &&
-         type.length === 0 &&
-         type.time === 0 &&
-         type.frequency === 0 &&
-         type.resolution === 0 &&
-         type.flex === 0 &&
-         type.percent === 0 &&
+  return (type.angle || 0) === 1 &&
+         (type.length || 0) === 0 &&
+         (type.time || 0) === 0 &&
+         (type.frequency || 0) === 0 &&
+         (type.resolution || 0) === 0 &&
+         (type.flex || 0) === 0 &&
+         (type.percent || 0) === 0 &&
          (type.percentHint === null || type.percentHint === undefined || type.percentHint === 'angle');
 }
 
@@ -303,3 +450,36 @@ function unitMapsEqual(m1: Record<string, number>, m2: Record<string, number>): 
   }
   return true;
 }
+
+function mapNegate(values: CSSNumericValue[]): CSSNumericValue[] {
+  return values.map(val => {
+    if (val instanceof CSSUnitValueClass) {
+      const u = val as unknown as CSSUnitValue;
+      return new CSSUnitValueClass(-u.value, u.unit);
+    }
+    if (val instanceof CSSMathNegateClass) {
+      return (val as unknown as CSSMathNegate).value;
+    }
+    return new CSSMathNegateClass(val);
+  });
+}
+
+function mapInvert(values: CSSNumericValue[]): CSSNumericValue[] {
+  return values.map(val => {
+    if (val instanceof CSSUnitValueClass) {
+      const u = val as unknown as CSSUnitValue;
+      if (u.unit === 'number') {
+        if (u.value === 0) {
+          throw new RangeError('Division by zero');
+        }
+        return new CSSUnitValueClass(1 / u.value, 'number');
+      }
+      return new CSSMathInvertClass(val);
+    }
+    if (val instanceof CSSMathInvertClass) {
+      return (val as unknown as CSSMathInvert).value;
+    }
+    return new CSSMathInvertClass(val);
+  });
+}
+
