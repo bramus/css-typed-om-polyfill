@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import '../src/index'; // Register polyfill and patch prototypes
-import { CSSUnitValue } from '../src/css-numeric-value';
-import { CSSKeywordValue } from '../src/css-style-value';
+import '../../src/index'; // Register polyfill and patch prototypes
+import { CSSUnitValue } from '../../src/css-numeric-value';
+import { CSSKeywordValue } from '../../src/css-style-value';
 
 describe('StylePropertyMap and DOM Integration', () => {
   it('should get and set inline styles via attributeStyleMap', () => {

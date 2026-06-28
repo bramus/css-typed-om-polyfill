@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CSSNumericValue, CSSUnitValue, CSSMathSum, CSSMathProduct, CSSMathNegate } from '../src/css-numeric-value';
+import { CSSNumericValue, CSSUnitValue, CSSMathSum, CSSMathProduct, CSSMathNegate } from '../../src/css-numeric-value';
 
 describe('CSSUnitValue and Type Arithmetic', () => {
   it('should resolve types correctly', () => {

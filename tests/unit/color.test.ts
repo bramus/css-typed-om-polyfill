@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import '../src/index';
-import { CSSColorValue, CSSRGB, CSSHSL, CSSColor } from '../src/css-color-value';
-import { CSSUnitValue } from '../src/css-numeric-value';
-import { CSSKeywordValue } from '../src/css-style-value';
+import '../../src/index';
+import { CSSColorValue, CSSRGB, CSSHSL, CSSColor } from '../../src/css-color-value';
+import { CSSUnitValue } from '../../src/css-numeric-value';
+import { CSSKeywordValue } from '../../src/css-style-value';
 
 describe('CSSColorValue and Subclasses', () => {
   it('should construct and stringify CSSRGB', () => {

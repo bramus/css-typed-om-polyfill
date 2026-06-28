@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { tokenizeString } from '../src/parser/tokenizer';
-import { parseCSSValue, parseAllCSSValues } from '../src/parser/css-value-parser';
-import { CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue } from '../src/css-style-value';
-import { CSSUnitValue, CSSMathSum, CSSMathProduct } from '../src/css-numeric-value';
-import { CSSTransformValue, CSSTranslate, CSSRotate } from '../src/css-transform-value';
-import { CSSRGB, CSSHSL } from '../src/css-color-value';
+import { tokenizeString } from '../../src/parser/tokenizer';
+import { parseCSSValue, parseAllCSSValues } from '../../src/parser/css-value-parser';
+import { CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue } from '../../src/css-style-value';
+import { CSSUnitValue, CSSMathSum, CSSMathProduct } from '../../src/css-numeric-value';
+import { CSSTransformValue, CSSTranslate, CSSRotate } from '../../src/css-transform-value';
+import { CSSRGB, CSSHSL } from '../../src/css-color-value';
 
 describe('CSS Tokenizer', () => {
   it('should tokenize simple values', () => {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
-import { CSSTransformValue, CSSTranslate, CSSRotate, CSSScale } from '../src/css-transform-value';
-import { CSSUnitValue } from '../src/css-numeric-value';
+import { CSSTransformValue, CSSTranslate, CSSRotate, CSSScale } from '../../src/css-transform-value';
+import { CSSUnitValue } from '../../src/css-numeric-value';
 
 class MockDOMMatrix {
   public a = 1; public b = 0; public c = 0; public d = 1; public e = 0; public f = 0;
