@@ -32,11 +32,14 @@ export abstract class CSSNumericValue extends CSSStyleValue {
   add(...values: CSSNumberish[]): CSSNumericValue {
     const numerics = [this, ...values.map(toNumericValue)];
     // Check type compatibility
-    const firstType = numerics[0]!.type();
+    let currentType = numerics[0]!.type();
     for (let i = 1; i < numerics.length; i++) {
-      if (!typesEqual(firstType, numerics[i]!.type())) {
+      const nextType = numerics[i]!.type();
+      const addedType = addTypes(currentType, nextType);
+      if (!addedType) {
         throw new TypeError('CSSNumericValues are not of compatible types for addition');
       }
+      currentType = addedType;
     }
     return new CSSMathSum(...numerics);
   }
@@ -138,6 +141,118 @@ function typesEqual(t1: CSSNumericType, t2: CSSNumericType): boolean {
          t1.flex === t2.flex &&
          t1.percent === t2.percent &&
          t1.percentHint === t2.percentHint;
+}
+
+export function applyPercentHint(type: CSSNumericType, hint: string): CSSNumericType {
+  const result = { ...type, percentHint: hint as any };
+  if (hint !== 'percent' && result.percent !== 0) {
+    const key = hint as keyof CSSNumericType;
+    result[key] = ((result[key] as number) || 0) + result.percent;
+    result.percent = 0;
+  }
+  return result;
+}
+
+export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType | null {
+  const finalType = createEmptyType();
+  
+  const h1 = t1.percentHint;
+  const h2 = t2.percentHint;
+  
+  let type1 = { ...t1 };
+  let type2 = { ...t2 };
+  
+  if (h1 && h2 && h1 !== h2) {
+    return null;
+  }
+  if (h1 && !h2) {
+    type2 = applyPercentHint(type2, h1);
+  } else if (h2 && !h1) {
+    type1 = applyPercentHint(type1, h2);
+  }
+  
+  const cleanType1 = { ...type1, percentHint: undefined };
+  const cleanType2 = { ...type2, percentHint: undefined };
+  
+  if (typesEqual(cleanType1, cleanType2)) {
+    Object.assign(finalType, type1);
+    finalType.percentHint = type1.percentHint || type2.percentHint;
+    return finalType;
+  }
+  
+  const hasPercent1 = type1.percent !== 0;
+  const hasPercent2 = type2.percent !== 0;
+  const hasOther1 = hasOtherThanPercent(type1);
+  const hasOther2 = hasOtherThanPercent(type2);
+  
+  if ((hasPercent1 || hasPercent2) && (hasOther1 || hasOther2)) {
+    const baseTypesOtherThanPercent = ["length", "angle", "time", "frequency", "resolution", "flex"];
+    for (const hint of baseTypesOtherThanPercent) {
+      const provType1 = applyPercentHint({ ...type1 }, hint);
+      const provType2 = applyPercentHint({ ...type2 }, hint);
+      
+      const cleanProv1 = { ...provType1, percentHint: undefined };
+      const cleanProv2 = { ...provType2, percentHint: undefined };
+      
+      if (typesEqual(cleanProv1, cleanProv2)) {
+        Object.assign(finalType, provType1);
+        finalType.percentHint = hint as any;
+        return finalType;
+      }
+    }
+  }
+  
+  return null;
+}
+
+function hasOtherThanPercent(type: CSSNumericType): boolean {
+  return type.length !== 0 ||
+         type.angle !== 0 ||
+         type.time !== 0 ||
+         type.frequency !== 0 ||
+         type.resolution !== 0 ||
+         type.flex !== 0;
+}
+
+export function matchesLength(type: CSSNumericType): boolean {
+  return type.length === 1 &&
+         type.angle === 0 &&
+         type.time === 0 &&
+         type.frequency === 0 &&
+         type.resolution === 0 &&
+         type.flex === 0 &&
+         type.percent === 0 &&
+         (type.percentHint === null || type.percentHint === undefined || type.percentHint === 'length');
+}
+
+export function matchesPercentage(type: CSSNumericType): boolean {
+  return type.percent === 1 &&
+         type.length === 0 &&
+         type.angle === 0 &&
+         type.time === 0 &&
+         type.frequency === 0 &&
+         type.resolution === 0 &&
+         type.flex === 0 &&
+         (type.percentHint === null || type.percentHint === undefined || type.percentHint === 'percent');
+}
+
+export function matchesLengthPercentage(type: CSSNumericType): boolean {
+  return matchesLength(type) || matchesPercentage(type);
+}
+
+export function matchesAngle(type: CSSNumericType): boolean {
+  return type.angle === 1 &&
+         type.length === 0 &&
+         type.time === 0 &&
+         type.frequency === 0 &&
+         type.resolution === 0 &&
+         type.flex === 0 &&
+         type.percent === 0 &&
+         (type.percentHint === null || type.percentHint === undefined || type.percentHint === 'angle');
+}
+
+export function matchesAnglePercentage(type: CSSNumericType): boolean {
+  return matchesAngle(type) || matchesPercentage(type);
 }
 
 function unitMapsEqual(m1: Record<string, number>, m2: Record<string, number>): boolean {
@@ -246,8 +361,16 @@ export class CSSMathSum extends CSSMathValue {
   }
 
   type(): CSSNumericType {
-    // Returns the type of its first argument (all arguments must be compatible)
-    return this.values[0]!.type();
+    let currentType = this.values[0]!.type();
+    for (let i = 1; i < this.values.length; i++) {
+      const nextType = this.values[i]!.type();
+      const addedType = addTypes(currentType, nextType);
+      if (!addedType) {
+        throw new TypeError('CSSNumericValues are not of compatible types for addition');
+      }
+      currentType = addedType;
+    }
+    return currentType;
   }
 
   toString(): string {

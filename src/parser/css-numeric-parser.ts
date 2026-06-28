@@ -516,16 +516,47 @@ function transformToCSSNumericValue(node: any): CSSNumericValue {
   }
 }
 
+function splitTokensByComma(tokens: any[]): any[][] {
+  const args: any[][] = [];
+  let currentArg: any[] = [];
+  for (const token of tokens) {
+    if (token instanceof CommaToken) {
+      args.push(currentArg);
+      currentArg = [];
+    } else {
+      currentArg.push(token);
+    }
+  }
+  args.push(currentArg);
+  return args;
+}
+
 function reifyMathExpression(num: CSSFunction): CSSNumericValue {
-  if (num.name === 'min' || num.name === 'max') {
-    const values = num.values
-      .filter(value => !(value instanceof WhitespaceToken || value instanceof CommaToken))
-      .map(value => simplifyCalculation(reifyMathExpression(new CSSFunction('calc', value))));
-    return num.name === 'min' ? new CSSMathMin(...values) : new CSSMathMax(...values);
+  if (num.name === 'min' || num.name === 'max' || num.name === 'clamp') {
+    const args = splitTokensByComma(num.values);
+    const parsedArgs = args.map(arg => {
+      // Remove leading/trailing whitespace to check for empty arguments
+      const trimmed = arg.filter(t => !(t instanceof WhitespaceToken));
+      if (trimmed.length === 0) {
+        throw new SyntaxError('Empty argument in math function');
+      }
+      return simplifyCalculation(reifyMathExpression(new CSSFunction('calc', arg)));
+    });
+
+    if (num.name === 'min') {
+      return new CSSMathMin(...parsedArgs);
+    } else if (num.name === 'max') {
+      return new CSSMathMax(...parsedArgs);
+    } else {
+      if (parsedArgs.length !== 3) {
+        throw new SyntaxError('clamp() requires exactly 3 arguments');
+      }
+      return new CSSMathClamp(parsedArgs[0]!, parsedArgs[1]!, parsedArgs[2]!);
+    }
   }
 
   if (num.name !== 'calc') {
-    throw new SyntaxError('Expected calc(), min() or max()');
+    throw new SyntaxError('Expected calc(), min(), max() or clamp()');
   }
 
   const root = convertTokensToAST([...num.values]);
@@ -557,7 +588,7 @@ function reifyNumericValue(num: any): CSSNumericValue {
   } else if (num instanceof DimensionToken) {
     return new CSSUnitValue(num.value, num.unit);
   }
-  throw new TypeError('Invalid numeric token');
+  throw new SyntaxError('Invalid numeric token');
 }
 
 export function parseCSSNumericValue(cssText: string): CSSNumericValue {

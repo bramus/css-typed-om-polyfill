@@ -54,11 +54,6 @@ export function simplifyCalculation(root: CSSNumericValue, info: Info = {}): CSS
       return new CSSUnitValue(resolvedValue, resolvedUnit);
     }
 
-    const sum = root.toSum();
-    if (sum && sum.values.length === 1) {
-      root = sum.values[0]!;
-    }
-    
     if (root instanceof CSSUnitValue && root.unit === 'em' && info.fontSize) {
       root = new CSSUnitValue(root.value * info.fontSize.value, info.fontSize.unit);
     }

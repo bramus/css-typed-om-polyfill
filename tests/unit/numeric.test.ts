@@ -19,6 +19,16 @@ describe('CSSUnitValue and Type Arithmetic', () => {
     expect(sum.type().length).toBe(1);
   });
 
+  it('should support addition of length and percent', () => {
+    const px = new CSSUnitValue(10, 'px');
+    const percent = new CSSUnitValue(20, 'percent');
+    const sum = px.add(percent);
+    expect(sum).toBeInstanceOf(CSSMathSum);
+    expect(sum.type().length).toBe(1);
+    expect(sum.type().percent).toBe(0);
+    expect(sum.type().percentHint).toBe('length');
+  });
+
   it('should throw when adding incompatible units', () => {
     const px = new CSSUnitValue(10, 'px');
     const deg = new CSSUnitValue(45, 'deg');

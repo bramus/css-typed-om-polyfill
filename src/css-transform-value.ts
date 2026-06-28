@@ -1,5 +1,17 @@
 import { CSSStyleValue, CSSKeywordValue } from './css-style-value';
-import { CSSNumericValue, type CSSNumberish, toNumericValue, CSSUnitValue } from './css-numeric-value';
+import { CSSNumericValue, type CSSNumberish, toNumericValue, CSSUnitValue, matchesLength, matchesLengthPercentage, matchesAngle } from './css-numeric-value';
+
+function isNumberValue(val: CSSNumberish): boolean {
+  if (typeof val === 'number') return true;
+  const type = val.type();
+  return type.length === 0 &&
+         type.angle === 0 &&
+         type.time === 0 &&
+         type.frequency === 0 &&
+         type.resolution === 0 &&
+         type.flex === 0 &&
+         type.percent === 0;
+}
 
 export abstract class CSSTransformComponent {
   abstract is2D: boolean;
@@ -40,6 +52,9 @@ export class CSSTransformValue extends CSSStyleValue {
         if (typeof prop === 'string') {
           const index = Number(prop);
           if (Number.isInteger(index) && index >= 0) {
+            if (index >= target._components.length) {
+              throw new RangeError('Index out of range');
+            }
             target._components[index] = value;
             return true;
           }
@@ -73,31 +88,61 @@ export class CSSTransformValue extends CSSStyleValue {
 }
 
 export class CSSTranslate extends CSSTransformComponent {
-  public x: CSSNumericValue;
-  public y: CSSNumericValue;
-  public z: CSSNumericValue;
+  private _x: CSSNumericValue;
+  private _y: CSSNumericValue;
+  private _z: CSSNumericValue;
+  private _is2D: boolean;
 
-  constructor(x: CSSNumericValue, y: CSSNumericValue, z: CSSNumericValue = new CSSUnitValue(0, 'px')) {
+  constructor(x: CSSNumericValue, y: CSSNumericValue, z?: CSSNumericValue) {
     super();
     this.x = x;
     this.y = y;
-    this.z = z;
+    if (z !== undefined) {
+      this.z = z;
+      this._is2D = false;
+    } else {
+      this._z = new CSSUnitValue(0, 'px');
+      this._is2D = true;
+    }
+  }
+
+  get x(): CSSNumericValue { return this._x; }
+  set x(val: CSSNumericValue) {
+    if (!(val instanceof CSSNumericValue) || !matchesLengthPercentage(val.type())) {
+      throw new TypeError('CSSTranslate.x must be a length or percentage');
+    }
+    this._x = val;
+  }
+
+  get y(): CSSNumericValue { return this._y; }
+  set y(val: CSSNumericValue) {
+    if (!(val instanceof CSSNumericValue) || !matchesLengthPercentage(val.type())) {
+      throw new TypeError('CSSTranslate.y must be a length or percentage');
+    }
+    this._y = val;
+  }
+
+  get z(): CSSNumericValue { return this._z; }
+  set z(val: CSSNumericValue) {
+    if (!(val instanceof CSSNumericValue) || !matchesLength(val.type())) {
+      throw new TypeError('CSSTranslate.z must be a length');
+    }
+    this._z = val;
   }
 
   get is2D(): boolean {
-    return this.z instanceof CSSUnitValue && this.z.value === 0;
+    return this._is2D;
   }
 
   set is2D(value: boolean) {
+    this._is2D = value;
     if (value) {
-      this.z = new CSSUnitValue(0, 'px');
+      this._z = new CSSUnitValue(0, 'px');
     }
   }
 
   toMatrix(): DOMMatrix {
     if (this.is2D) {
-      // We need to resolve px values. If they are not px, we might need a layout context,
-      // but standard Typed OM toMatrix() assumes px or resolves them as 0 if relative.
       const xPx = this.x.to('px').value;
       const yPx = this.y.to('px').value;
       return new DOMMatrix([1, 0, 0, 1, xPx, yPx]);
@@ -120,10 +165,11 @@ export class CSSTranslate extends CSSTransformComponent {
 }
 
 export class CSSRotate extends CSSTransformComponent {
-  public x: CSSNumberish;
-  public y: CSSNumberish;
-  public z: CSSNumberish;
-  public angle: CSSNumericValue;
+  private _x: CSSNumberish;
+  private _y: CSSNumberish;
+  private _z: CSSNumberish;
+  private _angle: CSSNumericValue;
+  private _is2D: boolean;
 
   constructor(angle: CSSNumericValue);
   constructor(x: CSSNumberish, y: CSSNumberish, z: CSSNumberish, angle: CSSNumericValue);
@@ -135,33 +181,62 @@ export class CSSRotate extends CSSTransformComponent {
   ) {
     super();
     if (typeof b === 'undefined') {
-      this.x = 0;
-      this.y = 0;
-      this.z = 1;
       this.angle = a as CSSNumericValue;
+      this._x = 0;
+      this._y = 0;
+      this._z = 1;
+      this._is2D = true;
     } else {
       this.x = a;
       this.y = b;
       this.z = c!;
       this.angle = d!;
+      this._is2D = false;
     }
   }
 
+  get x(): CSSNumberish { return this._x; }
+  set x(val: CSSNumberish) {
+    if (!isNumberValue(val)) {
+      throw new TypeError('CSSRotate.x must be a number');
+    }
+    this._x = val;
+  }
+
+  get y(): CSSNumberish { return this._y; }
+  set y(val: CSSNumberish) {
+    if (!isNumberValue(val)) {
+      throw new TypeError('CSSRotate.y must be a number');
+    }
+    this._y = val;
+  }
+
+  get z(): CSSNumberish { return this._z; }
+  set z(val: CSSNumberish) {
+    if (!isNumberValue(val)) {
+      throw new TypeError('CSSRotate.z must be a number');
+    }
+    this._z = val;
+  }
+
+  get angle(): CSSNumericValue { return this._angle; }
+  set angle(val: CSSNumericValue) {
+    if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
+      throw new TypeError('CSSRotate.angle must be an angle');
+    }
+    this._angle = val;
+  }
+
   get is2D(): boolean {
-    // 2D rotation is around the Z axis only (x=0, y=0, z=1)
-    const xNum = toNumericValue(this.x);
-    const yNum = toNumericValue(this.y);
-    const zNum = toNumericValue(this.z);
-    return xNum instanceof CSSUnitValue && xNum.value === 0 &&
-           yNum instanceof CSSUnitValue && yNum.value === 0 &&
-           zNum instanceof CSSUnitValue && zNum.value === 1;
+    return this._is2D;
   }
 
   set is2D(value: boolean) {
+    this._is2D = value;
     if (value) {
-      this.x = 0;
-      this.y = 0;
-      this.z = 1;
+      this._x = 0;
+      this._y = 0;
+      this._z = 1;
     }
   }
 
@@ -193,25 +268,56 @@ export class CSSRotate extends CSSTransformComponent {
 }
 
 export class CSSScale extends CSSTransformComponent {
-  public x: CSSNumberish;
-  public y: CSSNumberish;
-  public z: CSSNumberish;
+  private _x: CSSNumberish;
+  private _y: CSSNumberish;
+  private _z: CSSNumberish;
+  private _is2D: boolean;
 
-  constructor(x: CSSNumberish, y: CSSNumberish, z: CSSNumberish = 1) {
+  constructor(x: CSSNumberish, y: CSSNumberish, z?: CSSNumberish) {
     super();
     this.x = x;
     this.y = y;
-    this.z = z;
+    if (z !== undefined) {
+      this.z = z;
+      this._is2D = false;
+    } else {
+      this._z = 1;
+      this._is2D = true;
+    }
+  }
+
+  get x(): CSSNumberish { return this._x; }
+  set x(val: CSSNumberish) {
+    if (!isNumberValue(val)) {
+      throw new TypeError('CSSScale.x must be a number');
+    }
+    this._x = val;
+  }
+
+  get y(): CSSNumberish { return this._y; }
+  set y(val: CSSNumberish) {
+    if (!isNumberValue(val)) {
+      throw new TypeError('CSSScale.y must be a number');
+    }
+    this._y = val;
+  }
+
+  get z(): CSSNumberish { return this._z; }
+  set z(val: CSSNumberish) {
+    if (!isNumberValue(val)) {
+      throw new TypeError('CSSScale.z must be a number');
+    }
+    this._z = val;
   }
 
   get is2D(): boolean {
-    const zNum = toNumericValue(this.z);
-    return zNum instanceof CSSUnitValue && zNum.value === 1;
+    return this._is2D;
   }
 
   set is2D(value: boolean) {
+    this._is2D = value;
     if (value) {
-      this.z = 1;
+      this._z = 1;
     }
   }
 
@@ -237,13 +343,29 @@ export class CSSScale extends CSSTransformComponent {
 }
 
 export class CSSSkew extends CSSTransformComponent {
-  public ax: CSSNumericValue;
-  public ay: CSSNumericValue;
+  private _ax: CSSNumericValue;
+  private _ay: CSSNumericValue;
 
   constructor(ax: CSSNumericValue, ay: CSSNumericValue) {
     super();
     this.ax = ax;
     this.ay = ay;
+  }
+
+  get ax(): CSSNumericValue { return this._ax; }
+  set ax(val: CSSNumericValue) {
+    if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
+      throw new TypeError('CSSSkew.ax must be an angle');
+    }
+    this._ax = val;
+  }
+
+  get ay(): CSSNumericValue { return this._ay; }
+  set ay(val: CSSNumericValue) {
+    if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
+      throw new TypeError('CSSSkew.ay must be an angle');
+    }
+    this._ay = val;
   }
 
   get is2D(): boolean {
@@ -258,8 +380,6 @@ export class CSSSkew extends CSSTransformComponent {
     const xDeg = this.ax.to('deg').value;
     const yDeg = this.ay.to('deg').value;
     const m = new DOMMatrix();
-    // Skewing is done by setting the shear components
-    // tan(ax) and tan(ay)
     m.b = Math.tan(yDeg * Math.PI / 180);
     m.c = Math.tan(xDeg * Math.PI / 180);
     return m;
@@ -271,11 +391,19 @@ export class CSSSkew extends CSSTransformComponent {
 }
 
 export class CSSSkewX extends CSSTransformComponent {
-  public ax: CSSNumericValue;
+  private _ax: CSSNumericValue;
 
   constructor(ax: CSSNumericValue) {
     super();
     this.ax = ax;
+  }
+
+  get ax(): CSSNumericValue { return this._ax; }
+  set ax(val: CSSNumericValue) {
+    if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
+      throw new TypeError('CSSSkewX.ax must be an angle');
+    }
+    this._ax = val;
   }
 
   get is2D(): boolean {
@@ -299,11 +427,19 @@ export class CSSSkewX extends CSSTransformComponent {
 }
 
 export class CSSSkewY extends CSSTransformComponent {
-  public ay: CSSNumericValue;
+  private _ay: CSSNumericValue;
 
   constructor(ay: CSSNumericValue) {
     super();
     this.ay = ay;
+  }
+
+  get ay(): CSSNumericValue { return this._ay; }
+  set ay(val: CSSNumericValue) {
+    if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
+      throw new TypeError('CSSSkewY.ay must be an angle');
+    }
+    this._ay = val;
   }
 
   get is2D(): boolean {
@@ -329,14 +465,27 @@ export class CSSSkewY extends CSSTransformComponent {
 export type CSSPerspectiveValue = CSSNumericValue | CSSKeywordValue;
 
 export class CSSPerspective extends CSSTransformComponent {
-  public length: CSSPerspectiveValue;
+  private _length: CSSPerspectiveValue;
 
   constructor(length: CSSPerspectiveValue) {
     super();
     this.length = length;
-    if (length instanceof CSSKeywordValue && length.value !== 'none') {
-      throw new TypeError("CSSPerspective length keyword must be 'none'");
+  }
+
+  get length(): CSSPerspectiveValue { return this._length; }
+  set length(val: CSSPerspectiveValue) {
+    if (val instanceof CSSKeywordValue) {
+      if (val.value !== 'none') {
+        throw new TypeError("CSSPerspective length keyword must be 'none'");
+      }
+    } else if (val instanceof CSSNumericValue) {
+      if (!matchesLength(val.type())) {
+        throw new TypeError('CSSPerspective length must be a length');
+      }
+    } else {
+      throw new TypeError('CSSPerspective length must be a length or "none"');
     }
+    this._length = val;
   }
 
   get is2D(): boolean {
@@ -350,7 +499,7 @@ export class CSSPerspective extends CSSTransformComponent {
   toMatrix(): DOMMatrix {
     const m = new DOMMatrix();
     if (this.length instanceof CSSKeywordValue) {
-      return m; // Identity matrix
+      return m;
     }
     const valPx = this.length.to('px').value;
     if (valPx !== 0) {

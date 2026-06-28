@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { CSSTransformValue, CSSTranslate, CSSRotate, CSSScale } from '../../src/css-transform-value';
 import { CSSUnitValue } from '../../src/css-numeric-value';
+import { CSSUnparsedValue } from '../../src/css-style-value';
 
 class MockDOMMatrix {
   public a = 1; public b = 0; public c = 0; public d = 1; public e = 0; public f = 0;
@@ -143,5 +144,50 @@ describe('CSSTransformValue and Components', () => {
     expect(matrix.m42).toBe(20);
     expect(matrix.a).toBe(2);
     expect(matrix.d).toBe(2);
+  });
+
+  describe('Validation and is2D', () => {
+    it('CSSTranslate validation', () => {
+      expect(() => new CSSTranslate(new CSSUnitValue(10, 'deg'), new CSSUnitValue(20, 'px'))).toThrow(TypeError);
+      expect(() => new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 's'))).toThrow(TypeError);
+      expect(() => new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'), new CSSUnitValue(30, 'percent'))).toThrow(TypeError);
+      expect(() => new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'), new CSSUnitValue(30, 'deg'))).toThrow(TypeError);
+      
+      const t = new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'));
+      expect(() => t.x = new CSSUnitValue(10, 'deg')).toThrow(TypeError);
+      expect(() => t.z = new CSSUnitValue(10, 'percent')).toThrow(TypeError);
+    });
+
+    it('CSSTranslate is2D behavior', () => {
+      const t1 = new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'));
+      expect(t1.is2D).toBe(true);
+      
+      const t2 = new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'), new CSSUnitValue(0, 'px'));
+      expect(t2.is2D).toBe(false);
+      
+      t2.is2D = true;
+      expect(t2.is2D).toBe(true);
+      expect(t2.z.value).toBe(0);
+      
+      t2.is2D = false;
+      expect(t2.is2D).toBe(false);
+    });
+
+    it('CSSRotate validation', () => {
+      expect(() => new CSSRotate(new CSSUnitValue(10, 'px'))).toThrow(TypeError);
+      expect(() => new CSSRotate(1, 2, 3, new CSSUnitValue(10, 'px'))).toThrow(TypeError);
+      expect(() => new CSSRotate(new CSSUnitValue(1, 'px'), 2, 3, new CSSUnitValue(10, 'deg'))).toThrow(TypeError);
+    });
+
+    it('CSSUnparsedValue bounds check', () => {
+      const uv = CSSUnparsedValue.create(['foo', 'bar']);
+      expect(() => uv[2] = 'baz').toThrow(RangeError);
+    });
+
+    it('CSSTransformValue bounds check', () => {
+      const translate = new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'));
+      const transform = CSSTransformValue.create([translate]);
+      expect(() => transform[1] = translate).toThrow(RangeError);
+    });
   });
 });
