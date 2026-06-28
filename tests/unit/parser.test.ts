@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { tokenizeString } from '../../src/parser/tokenizer';
 import { parseCSSValue, parseAllCSSValues } from '../../src/parser/css-value-parser';
-import { CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue } from '../../src/css-style-value';
+import { CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue, CSSImageValue } from '../../src/css-style-value';
 import { CSSUnitValue, CSSMathSum, CSSMathProduct } from '../../src/css-numeric-value';
 import { CSSTransformValue, CSSTranslate, CSSRotate } from '../../src/css-transform-value';
 import { CSSRGB, CSSHSL } from '../../src/css-color-value';
@@ -76,7 +76,7 @@ describe('CSS Value Parser', () => {
   it('should parse all values in a comma-separated list', () => {
     const vals = parseAllCSSValues('background-image', 'url(bg.png), linear-gradient(red, blue)');
     expect(vals.length).toBe(2);
-    expect(vals[0]).toBeInstanceOf(CSSUnparsedValue);
-    expect(vals[1]).toBeInstanceOf(CSSUnparsedValue);
+    expect(vals[0]).toBeInstanceOf(CSSImageValue);
+    expect(vals[1]).toBeInstanceOf(CSSImageValue);
   });
 });

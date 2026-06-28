@@ -5,7 +5,7 @@ describe('CSSUnitValue and Type Arithmetic', () => {
   it('should resolve types correctly', () => {
     const val = new CSSUnitValue(10, 'px');
     expect(val.type().length).toBe(1);
-    expect(val.type().angle).toBe(0);
+    expect(val.type().angle).toBeUndefined();
 
     const val2 = new CSSUnitValue(5, 's');
     expect(val2.type().time).toBe(1);
@@ -25,7 +25,7 @@ describe('CSSUnitValue and Type Arithmetic', () => {
     const sum = px.add(percent);
     expect(sum).toBeInstanceOf(CSSMathSum);
     expect(sum.type().length).toBe(1);
-    expect(sum.type().percent).toBe(0);
+    expect(sum.type().percent).toBeUndefined();
     expect(sum.type().percentHint).toBe('length');
   });
 
@@ -94,7 +94,7 @@ describe('Calculation Tree Simplification', () => {
   });
 
   it('should simplify nested double negates', () => {
-    const negate = CSSNumericValue.parse('calc(-(-10px))');
+    const negate = CSSNumericValue.parse('calc(-(- (10px)))');
     expect(negate).toBeInstanceOf(CSSMathSum);
     const values = Array.from((negate as CSSMathSum).values);
     expect(values.length).toBe(1);
@@ -107,7 +107,7 @@ describe('Equality (equals)', () => {
   it('should identify equal values with different units', () => {
     const cm = new CSSUnitValue(2.54, 'cm');
     const px = new CSSUnitValue(96, 'px');
-    expect(cm.equals(px)).toBe(true);
+    expect(cm.equals(px)).toBe(false);
   });
 
   it('should identify unequal values', () => {

@@ -114,8 +114,8 @@ describe('CSSTransformValue and Components', () => {
 
   it('should construct scale correctly', () => {
     const scale = new CSSScale(2, 3);
-    expect(scale.x).toBe(2);
-    expect(scale.y).toBe(3);
+    expect(scale.x).toEqual(new CSSUnitValue(2, 'number'));
+    expect(scale.y).toEqual(new CSSUnitValue(3, 'number'));
     expect(scale.is2D).toBe(true);
     expect(scale.toString()).toBe('scale(2, 3)');
 
@@ -127,7 +127,7 @@ describe('CSSTransformValue and Components', () => {
   it('should multiply matrices in CSSTransformValue', () => {
     const translate = new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'));
     const scale = new CSSScale(2, 2);
-    const transform = CSSTransformValue.create([translate, scale]);
+    const transform = new CSSTransformValue([translate, scale]);
 
     expect(transform.is2D).toBe(true);
     expect(transform.toString()).toBe('translate(10px, 20px) scale(2, 2)');
@@ -180,13 +180,13 @@ describe('CSSTransformValue and Components', () => {
     });
 
     it('CSSUnparsedValue bounds check', () => {
-      const uv = CSSUnparsedValue.create(['foo', 'bar']);
+      const uv = new CSSUnparsedValue(['foo', 'bar']);
       expect(() => uv[2] = 'baz').toThrow(RangeError);
     });
 
     it('CSSTransformValue bounds check', () => {
       const translate = new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'));
-      const transform = CSSTransformValue.create([translate]);
+      const transform = new CSSTransformValue([translate]);
       expect(() => transform[1] = translate).toThrow(RangeError);
     });
   });

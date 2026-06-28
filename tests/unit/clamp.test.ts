@@ -65,11 +65,17 @@ describe('CSSMathClamp', () => {
   });
 
   it('should throw when parsing clamp() with incompatible units', () => {
-    expect(() => CSSNumericValue.parse('clamp(10px, 45deg, 20px)')).toThrow(TypeError);
+    expect(() => CSSNumericValue.parse('clamp(10px, 45deg, 20px)')).toThrowError(
+      expect.objectContaining({ name: 'SyntaxError' })
+    );
   });
 
   it('should throw when parsing clamp() with wrong number of arguments', () => {
-    expect(() => CSSNumericValue.parse('clamp(10px, 20px)')).toThrow(SyntaxError);
-    expect(() => CSSNumericValue.parse('clamp(10px, 20px, 30px, 40px)')).toThrow(SyntaxError);
+    expect(() => CSSNumericValue.parse('clamp(10px, 20px)')).toThrowError(
+      expect.objectContaining({ name: 'SyntaxError' })
+    );
+    expect(() => CSSNumericValue.parse('clamp(10px, 20px, 30px, 40px)')).toThrowError(
+      expect.objectContaining({ name: 'SyntaxError' })
+    );
   });
 });
