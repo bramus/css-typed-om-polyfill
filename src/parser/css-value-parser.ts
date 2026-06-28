@@ -16,7 +16,7 @@ import {
   HashToken,
   AtKeywordToken
 } from './tokenizer';
-import { CSSStyleValue, CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue, type CSSUnparsedSegment } from '../css-style-value';
+import { CSSStyleValue, CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue, type CSSUnparsedSegment, CSSImageValue } from '../css-style-value';
 import { CSSNumericValue, CSSUnitValue } from '../css-numeric-value';
 import { parseCSSNumericValue } from './css-numeric-parser';
 import {
@@ -101,6 +101,11 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
     } catch (e) {}
   }
 
+  // Try to parse as an image value
+  if (isImageValue(tokens, trimmed)) {
+    return new CSSImageValue(trimmed);
+  }
+
   // 5. Try to parse as keyword
   if (tokens.length === 1 && tokens[0] instanceof IdentToken) {
     return new CSSKeywordValue(tokens[0].value);
@@ -108,6 +113,26 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
 
   // 6. Fallback to CSSUnparsedValue
   return parseUnparsedValue(tokens);
+}
+
+function tokensToString(tokens: Token[]): string {
+  return tokens.map(t => {
+    if (t instanceof WhitespaceToken) return ' ';
+    if (t instanceof DelimToken) return t.value;
+    if (t instanceof IdentToken) return t.value;
+    if (t instanceof FunctionToken) return `${t.value}(`;
+    if (t instanceof NumberToken) return `${t.value}`;
+    if (t instanceof PercentageToken) return `${t.value}%`;
+    if (t instanceof DimensionToken) return `${t.value}${t.unit}`;
+    if (t instanceof CommaToken) return ',';
+    if (t instanceof LeftParenthesisToken) return '(';
+    if (t instanceof RightParenthesisToken) return ')';
+    if (t instanceof UrlToken) return `url(${t.value})`;
+    if (t instanceof StringToken) return `"${t.value}"`;
+    if (t instanceof HashToken) return `#${t.value}`;
+    if (t instanceof AtKeywordToken) return `@${t.value}`;
+    return '';
+  }).join('').trim();
 }
 
 export function parseAllCSSValues(property: string, cssText: string): CSSStyleValue[] {
@@ -141,23 +166,7 @@ export function parseAllCSSValues(property: string, cssText: string): CSSStyleVa
   }
 
   return parts.map(part => {
-    const partText = part.map(t => {
-      if (t instanceof WhitespaceToken) return ' ';
-      if (t instanceof DelimToken) return t.value;
-      if (t instanceof IdentToken) return t.value;
-      if (t instanceof FunctionToken) return `${t.value}(`;
-      if (t instanceof NumberToken) return `${t.value}`;
-      if (t instanceof PercentageToken) return `${t.value}%`;
-      if (t instanceof DimensionToken) return `${t.value}${t.unit}`;
-      if (t instanceof CommaToken) return ',';
-      if (t instanceof LeftParenthesisToken) return '(';
-      if (t instanceof RightParenthesisToken) return ')';
-      if (t instanceof UrlToken) return `url(${t.value})`;
-      if (t instanceof StringToken) return `"${t.value}"`;
-      if (t instanceof HashToken) return `#${t.value}`;
-      if (t instanceof AtKeywordToken) return `@${t.value}`;
-      return '';
-    }).join('').trim();
+    const partText = tokensToString(part);
     return parseCSSValue(property, partText);
   });
 }
@@ -190,6 +199,18 @@ function isColorValue(tokens: Token[], cssText: string): boolean {
   }
   const colorFnNames = new Set(['rgb', 'rgba', 'hsl', 'hsla', 'hwb', 'lab', 'lch', 'oklab', 'oklch', 'color']);
   return tokens.some(t => t instanceof FunctionToken && colorFnNames.has(t.value.toLowerCase()));
+}
+
+function isImageValue(tokens: Token[], cssText: string): boolean {
+  if (tokens.some(t => t instanceof UrlToken)) {
+    return true;
+  }
+  const imageFnNames = new Set([
+    'url', 'linear-gradient', 'radial-gradient', 'conic-gradient',
+    'repeating-linear-gradient', 'repeating-radial-gradient', 'repeating-conic-gradient',
+    'image', 'element', 'cross-fade', 'image-set'
+  ]);
+  return tokens.some(t => t instanceof FunctionToken && imageFnNames.has(t.value.toLowerCase()));
 }
 
 function parseTransformValue(tokens: Token[]): CSSTransformValue {
@@ -227,24 +248,53 @@ function parseTransformValue(tokens: Token[]): CSSTransformValue {
     components.push(parseTransformComponent(name, args));
   }
 
-  return CSSTransformValue.create(components);
+  return new CSSTransformValue(components);
 }
 
 function parseTransformComponent(name: string, argTokens: Token[]): CSSTransformComponent {
-  // Filter out whitespace and commas
-  const args = argTokens.filter(t => !(t instanceof WhitespaceToken || t instanceof CommaToken));
+  // Split by top-level commas
+  const args: Token[][] = [];
+  let currentArg: Token[] = [];
+  let parenLevel = 0;
+  for (const token of argTokens) {
+    if (token instanceof LeftParenthesisToken || token instanceof FunctionToken) {
+      parenLevel++;
+      currentArg.push(token);
+    } else if (token instanceof RightParenthesisToken) {
+      parenLevel--;
+      currentArg.push(token);
+    } else if (token instanceof CommaToken && parenLevel === 0) {
+      args.push(currentArg);
+      currentArg = [];
+    } else {
+      if (!(token instanceof WhitespaceToken && currentArg.length === 0)) {
+        currentArg.push(token);
+      }
+    }
+  }
+  if (currentArg.length > 0) {
+    args.push(currentArg);
+  }
 
-  const reifyArg = (t: Token | undefined): CSSNumericValue => {
-    if (!t) throw new SyntaxError('Missing transform argument');
-    if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'number');
-    if (t instanceof PercentageToken) return new CSSUnitValue(t.value, 'percent');
-    if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
-    throw new SyntaxError('Invalid transform argument');
+  const reifyArg = (tokens: Token[] | undefined): CSSNumericValue => {
+    if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
+    if (tokens.length === 1) {
+      const t = tokens[0]!;
+      if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'number');
+      if (t instanceof PercentageToken) return new CSSUnitValue(t.value, 'percent');
+      if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
+    }
+    const cssText = tokensToString(tokens);
+    try {
+      return parseCSSNumericValue(cssText);
+    } catch (e) {
+      throw new SyntaxError('Invalid transform argument');
+    }
   };
 
   switch (name) {
     case 'translate':
-      return new CSSTranslate(reifyArg(args[0]), reifyArg(args[1]));
+      return new CSSTranslate(reifyArg(args[0]), args[1] ? reifyArg(args[1]) : new CSSUnitValue(0, 'px'));
     case 'translate3d':
       return new CSSTranslate(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]));
     case 'translatex':
@@ -257,6 +307,12 @@ function parseTransformComponent(name: string, argTokens: Token[]): CSSTransform
       return new CSSRotate(reifyArg(args[0]));
     case 'rotate3d':
       return new CSSRotate(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), reifyArg(args[3]));
+    case 'rotatex':
+      return new CSSRotate(1, 0, 0, reifyArg(args[0]));
+    case 'rotatey':
+      return new CSSRotate(0, 1, 0, reifyArg(args[0]));
+    case 'rotatez':
+      return new CSSRotate(0, 0, 1, reifyArg(args[0]));
     case 'scale':
       return new CSSScale(reifyArg(args[0]), args[1] ? reifyArg(args[1]) : reifyArg(args[0]));
     case 'scale3d':
@@ -268,19 +324,29 @@ function parseTransformComponent(name: string, argTokens: Token[]): CSSTransform
     case 'scalez':
       return new CSSScale(1, 1, reifyArg(args[0]));
     case 'skew':
-      return new CSSSkew(reifyArg(args[0]), reifyArg(args[1]));
+      return new CSSSkew(reifyArg(args[0]), args[1] ? reifyArg(args[1]) : new CSSUnitValue(0, 'deg'));
     case 'skewx':
       return new CSSSkewX(reifyArg(args[0]));
     case 'skewy':
       return new CSSSkewY(reifyArg(args[0]));
     case 'perspective':
-      return new CSSPerspective(args[0] instanceof IdentToken && args[0].value.toLowerCase() === 'none' ? new CSSKeywordValue('none') : reifyArg(args[0]));
+      return new CSSPerspective(args[0] && args[0][0] instanceof IdentToken && args[0][0].value.toLowerCase() === 'none' ? new CSSKeywordValue('none') : reifyArg(args[0]));
     case 'matrix': {
-      const vals = args.map(t => (t as NumberToken).value);
+      const vals = args.map(arg => {
+        if (arg.length !== 1 || !(arg[0] instanceof NumberToken)) {
+          throw new SyntaxError('Invalid matrix argument');
+        }
+        return arg[0].value;
+      });
       return new CSSMatrixComponent(new DOMMatrix([vals[0]!, vals[1]!, vals[2]!, vals[3]!, vals[4]!, vals[5]!]));
     }
     case 'matrix3d': {
-      const vals = args.map(t => (t as NumberToken).value);
+      const vals = args.map(arg => {
+        if (arg.length !== 1 || !(arg[0] instanceof NumberToken)) {
+          throw new SyntaxError('Invalid matrix argument');
+        }
+        return arg[0].value;
+      });
       return new CSSMatrixComponent(new DOMMatrix(vals));
     }
     default:
@@ -432,5 +498,5 @@ function parseUnparsedValue(tokens: Token[]): CSSUnparsedValue {
     segments.push(currentStr);
   }
 
-  return CSSUnparsedValue.create(segments);
+  return new CSSUnparsedValue(segments);
 }

@@ -8,17 +8,7 @@ export class CSSUnparsedValue extends CSSStyleValue {
   constructor(members: CSSUnparsedSegment[]) {
     super();
     this._segments = [...members];
-  }
-
-  get length(): number {
-    return this._segments.length;
-  }
-
-  [index: number]: CSSUnparsedSegment;
-
-  static create(members: CSSUnparsedSegment[]): CSSUnparsedValue {
-    const instance = new CSSUnparsedValue(members);
-    return new Proxy(instance, {
+    return new Proxy(this, {
       get(target, prop, receiver) {
         if (typeof prop === 'string') {
           const index = Number(prop);
@@ -43,6 +33,12 @@ export class CSSUnparsedValue extends CSSStyleValue {
       }
     }) as any;
   }
+
+  get length(): number {
+    return this._segments.length;
+  }
+
+  [index: number]: CSSUnparsedSegment;
 
   *[Symbol.iterator](): Iterator<CSSUnparsedSegment> {
     for (const segment of this._segments) {

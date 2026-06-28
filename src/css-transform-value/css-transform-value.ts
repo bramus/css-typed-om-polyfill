@@ -11,17 +11,7 @@ export class CSSTransformValue extends CSSStyleValue {
       throw new TypeError('CSSTransformValue constructor requires a non-empty sequence of CSSTransformComponents');
     }
     this._components = [...transforms];
-  }
-
-  get length(): number {
-    return this._components.length;
-  }
-
-  [index: number]: CSSTransformComponent;
-
-  static create(transforms: CSSTransformComponent[]): CSSTransformValue {
-    const instance = new CSSTransformValue(transforms);
-    return new Proxy(instance, {
+    return new Proxy(this, {
       get(target, prop, receiver) {
         if (typeof prop === 'string') {
           const index = Number(prop);
@@ -46,6 +36,12 @@ export class CSSTransformValue extends CSSStyleValue {
       }
     }) as any;
   }
+
+  get length(): number {
+    return this._components.length;
+  }
+
+  [index: number]: CSSTransformComponent;
 
   get is2D(): boolean {
     return this._components.every(comp => comp.is2D);

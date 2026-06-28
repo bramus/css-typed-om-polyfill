@@ -656,10 +656,6 @@ function reifyNumericValue(num: any): CSSNumericValue {
   if (num instanceof CSSFunction && ['calc', 'min', 'max', 'clamp'].includes(num.name)) {
     return reifyMathExpression(num);
   }
-  // Special case for unitless 0.
-  if (num instanceof NumberToken && num.value === 0 && !(num as any).unit) {
-    return new CSSUnitValue(0, 'px');
-  }
   // 1. If value is a <number-token>, return a new CSSUnitValue(value's value, "number").
   if (num instanceof NumberToken) {
     return new CSSUnitValue(num.value, 'number');

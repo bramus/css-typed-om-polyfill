@@ -26,7 +26,7 @@ export class CSSScale extends CSSTransformComponent {
     if (!isNumberValue(val)) {
       throw new TypeError('CSSScale.x must be a number');
     }
-    this._x = val;
+    this._x = toNumericValue(val);
   }
 
   get y(): CSSNumberish { return this._y; }
@@ -34,7 +34,7 @@ export class CSSScale extends CSSTransformComponent {
     if (!isNumberValue(val)) {
       throw new TypeError('CSSScale.y must be a number');
     }
-    this._y = val;
+    this._y = toNumericValue(val);
   }
 
   get z(): CSSNumberish { return this._z; }
@@ -42,7 +42,7 @@ export class CSSScale extends CSSTransformComponent {
     if (!isNumberValue(val)) {
       throw new TypeError('CSSScale.z must be a number');
     }
-    this._z = val;
+    this._z = toNumericValue(val);
   }
 
   get is2D(): boolean {
