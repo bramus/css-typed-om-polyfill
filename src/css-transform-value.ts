@@ -19,6 +19,7 @@ export abstract class CSSTransformComponent {
   abstract toString(): string;
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csstransformvalue
 export class CSSTransformValue extends CSSStyleValue {
   private _components: CSSTransformComponent[];
 
@@ -87,6 +88,7 @@ export class CSSTransformValue extends CSSStyleValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csstranslate
 export class CSSTranslate extends CSSTransformComponent {
   private _x: CSSNumericValue;
   private _y: CSSNumericValue;
@@ -164,6 +166,7 @@ export class CSSTranslate extends CSSTransformComponent {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssrotate
 export class CSSRotate extends CSSTransformComponent {
   private _x: CSSNumberish;
   private _y: CSSNumberish;
@@ -267,6 +270,7 @@ export class CSSRotate extends CSSTransformComponent {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssscale
 export class CSSScale extends CSSTransformComponent {
   private _x: CSSNumberish;
   private _y: CSSNumberish;
@@ -342,6 +346,7 @@ export class CSSScale extends CSSTransformComponent {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssskew
 export class CSSSkew extends CSSTransformComponent {
   private _ax: CSSNumericValue;
   private _ay: CSSNumericValue;
@@ -390,6 +395,7 @@ export class CSSSkew extends CSSTransformComponent {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssskewx
 export class CSSSkewX extends CSSTransformComponent {
   private _ax: CSSNumericValue;
 
@@ -426,6 +432,7 @@ export class CSSSkewX extends CSSTransformComponent {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssskewy
 export class CSSSkewY extends CSSTransformComponent {
   private _ay: CSSNumericValue;
 
@@ -464,6 +471,7 @@ export class CSSSkewY extends CSSTransformComponent {
 
 export type CSSPerspectiveValue = CSSNumericValue | CSSKeywordValue;
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssperspective
 export class CSSPerspective extends CSSTransformComponent {
   private _length: CSSPerspectiveValue;
 
@@ -517,6 +525,7 @@ export interface CSSMatrixComponentOptions {
   is2D?: boolean;
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssmatrixcomponent
 export class CSSMatrixComponent extends CSSTransformComponent {
   public matrix: DOMMatrix;
   public is2D: boolean;

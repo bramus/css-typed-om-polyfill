@@ -9,6 +9,7 @@ export function registerParsers(p: ParserFn, ap: AllParserFn) {
   allParser = ap;
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssstylevalue
 export abstract class CSSStyleValue {
   abstract toString(): string;
 
@@ -27,6 +28,7 @@ export abstract class CSSStyleValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csskeywordvalue
 export class CSSKeywordValue extends CSSStyleValue {
   constructor(public value: string) {
     super();
@@ -40,6 +42,7 @@ export class CSSKeywordValue extends CSSStyleValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssvariablereferencevalue
 export class CSSVariableReferenceValue {
   constructor(public variable: string, public fallback: CSSUnparsedValue | null = null) {
     if (typeof variable !== 'string' || !variable.startsWith('--')) {
@@ -50,6 +53,7 @@ export class CSSVariableReferenceValue {
 
 export type CSSUnparsedSegment = string | CSSVariableReferenceValue;
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssunparsedvalue
 export class CSSUnparsedValue extends CSSStyleValue {
   private _segments: CSSUnparsedSegment[];
 

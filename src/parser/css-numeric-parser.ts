@@ -574,36 +574,49 @@ function reifyMathExpression(num: CSSFunction): CSSNumericValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#reify-a-numeric-value
 function reifyNumericValue(num: any): CSSNumericValue {
   if (num instanceof CSSFunction && ['calc', 'min', 'max', 'clamp'].includes(num.name)) {
     return reifyMathExpression(num);
   }
+  // Special case for unitless 0.
   if (num instanceof NumberToken && num.value === 0 && !(num as any).unit) {
     return new CSSUnitValue(0, 'px');
   }
+  // 1. If value is a <number-token>, return a new CSSUnitValue(value's value, "number").
   if (num instanceof NumberToken) {
     return new CSSUnitValue(num.value, 'number');
-  } else if (num instanceof PercentageToken) {
+  }
+  // 2. If value is a <percentage-token>, return a new CSSUnitValue(value's value, "percent").
+  else if (num instanceof PercentageToken) {
     return new CSSUnitValue(num.value, 'percent');
-  } else if (num instanceof DimensionToken) {
+  }
+  // 3. If value is a <dimension-token>, return a new CSSUnitValue(value's value, value's unit).
+  else if (num instanceof DimensionToken) {
     return new CSSUnitValue(num.value, num.unit);
   }
   throw new SyntaxError('Invalid numeric token');
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-parse
 export function parseCSSNumericValue(cssText: string): CSSNumericValue {
+  // 1. Parse a component value from cssText and let result be the result.
   const result = parseComponentValue(cssText);
+  // If result is a syntax error, throw a SyntaxError.
   if (result === null) {
     throw new SyntaxError('Invalid CSS numeric value');
   }
+  // 2. If result is not a <number-token>, <percentage-token>, <dimension-token>, or a math function, throw a SyntaxError.
   if (!(result instanceof NumberToken || result instanceof PercentageToken || result instanceof DimensionToken || result instanceof CSSFunction)) {
     throw new SyntaxError('Invalid CSS numeric value');
   }
+  // 3. If result is a <dimension-token> and creating a type from result’s unit returns failure, throw a SyntaxError.
   if (result instanceof DimensionToken) {
     const type = createAType(result.unit);
     if (type === null) {
       throw new SyntaxError('Invalid unit');
     }
   }
+  // 4. Reify a numeric value result, and return the result.
   return reifyNumericValue(result);
 }

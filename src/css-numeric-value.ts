@@ -25,10 +25,12 @@ export function toNumericValue(val: CSSNumberish): CSSNumericValue {
 export abstract class CSSNumericValue extends CSSStyleValue {
   abstract type(): CSSNumericType;
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-parse
   static parse(cssText: string): CSSNumericValue {
     return parseCSSNumericValue(cssText);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-add
   add(...values: CSSNumberish[]): CSSNumericValue {
     const numerics = [this, ...values.map(toNumericValue)];
     // Check type compatibility
@@ -44,23 +46,27 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     return new CSSMathSum(...numerics);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-sub
   sub(...values: CSSNumberish[]): CSSNumericValue {
     const numerics = values.map(toNumericValue);
     const negated = numerics.map(val => new CSSMathNegate(val));
     return this.add(...negated);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-mul
   mul(...values: CSSNumberish[]): CSSNumericValue {
     const numerics = [this, ...values.map(toNumericValue)];
     return new CSSMathProduct(...numerics);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-div
   div(...values: CSSNumberish[]): CSSNumericValue {
     const numerics = values.map(toNumericValue);
     const inverted = numerics.map(val => new CSSMathInvert(val));
     return this.mul(...inverted);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-min
   min(...values: CSSNumberish[]): CSSNumericValue {
     const numerics = [this, ...values.map(toNumericValue)];
     const firstType = numerics[0]!.type();
@@ -72,6 +78,7 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     return new CSSMathMin(...numerics);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-max
   max(...values: CSSNumberish[]): CSSNumericValue {
     const numerics = [this, ...values.map(toNumericValue)];
     const firstType = numerics[0]!.type();
@@ -83,6 +90,7 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     return new CSSMathMax(...numerics);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-equals
   equals(...values: CSSNumberish[]): boolean {
     const numerics = values.map(toNumericValue);
     const thisSum = createSumValue(this);
@@ -111,10 +119,12 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     return true;
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-to
   to(unit: string): CSSUnitValue {
     return to(this, unit);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-tosum
   toSum(...units: string[]): CSSMathSum {
     return toSum(this, ...units);
   }
@@ -143,6 +153,8 @@ function typesEqual(t1: CSSNumericType, t2: CSSNumericType): boolean {
          t1.percentHint === t2.percentHint;
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#numeric-typing
+// Section 4.3.2. Numeric Value Typing
 export function applyPercentHint(type: CSSNumericType, hint: string): CSSNumericType {
   const result = { ...type, percentHint: hint as any };
   if (hint !== 'percent' && result.percent !== 0) {
@@ -153,6 +165,7 @@ export function applyPercentHint(type: CSSNumericType, hint: string): CSSNumeric
   return result;
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssnumericvalue-add-two-types
 export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType | null {
   const finalType = createEmptyType();
   
@@ -266,6 +279,7 @@ function unitMapsEqual(m1: Record<string, number>, m2: Record<string, number>): 
 }
 
 export class CSSUnitValue extends CSSNumericValue {
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssunitvalue-cssunitvalue
   constructor(public value: number, public unit: string) {
     super();
     if (typeof value !== 'number' || isNaN(value)) {
@@ -276,6 +290,7 @@ export class CSSUnitValue extends CSSNumericValue {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssunitvalue-type
   type(): CSSNumericType {
     const t = createEmptyType();
     if (this.unit === 'number') {
@@ -344,9 +359,11 @@ export class CSSNumericArray {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssmathsum
 export class CSSMathSum extends CSSMathValue {
   public values: CSSNumericArray;
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssmathsum-cssmathsum
   constructor(...args: CSSNumberish[]) {
     super();
     const values = args.map(toNumericValue);

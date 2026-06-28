@@ -12,6 +12,7 @@ export function registerColorParser(cp: (cssText: string) => any) {
   colorParser = cp;
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csscolorvalue
 export abstract class CSSColorValue extends CSSStyleValue {
   static parse(cssText: string): CSSColorValue | CSSStyleValue {
     if (!colorParser) {
@@ -31,6 +32,7 @@ function toColorComponent(val: CSSNumberish | CSSKeywordValue | string): CSSColo
   return toNumericValue(val);
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssrgb
 export class CSSRGB extends CSSColorValue {
   public r: CSSColorRGBComp;
   public g: CSSColorRGBComp;
@@ -55,6 +57,7 @@ export class CSSRGB extends CSSColorValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csshsl
 export class CSSHSL extends CSSColorValue {
   public h: CSSColorAngle;
   public s: CSSColorPercent;
@@ -79,6 +82,7 @@ export class CSSHSL extends CSSColorValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csshwb
 export class CSSHWB extends CSSColorValue {
   public h: CSSNumericValue;
   public w: CSSColorPercent;
@@ -103,6 +107,7 @@ export class CSSHWB extends CSSColorValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csslab
 export class CSSLab extends CSSColorValue {
   public l: CSSColorPercent;
   public a: CSSColorNumber;
@@ -127,6 +132,7 @@ export class CSSLab extends CSSColorValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csslch
 export class CSSLCH extends CSSColorValue {
   public l: CSSColorPercent;
   public c: CSSColorPercent;
@@ -151,6 +157,7 @@ export class CSSLCH extends CSSColorValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssoklab
 export class CSSOKLab extends CSSColorValue {
   public l: CSSColorPercent;
   public a: CSSColorNumber;
@@ -175,6 +182,7 @@ export class CSSOKLab extends CSSColorValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#cssoklch
 export class CSSOKLCH extends CSSColorValue {
   public l: CSSColorPercent;
   public c: CSSColorPercent;
@@ -199,6 +207,7 @@ export class CSSOKLCH extends CSSColorValue {
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#csscolor
 export class CSSColor extends CSSColorValue {
   public colorSpace: CSSKeywordValue;
   public channels: CSSColorPercent[];
