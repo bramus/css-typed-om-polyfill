@@ -1,8 +1,8 @@
 import { CSSStyleValue } from './css-style-value';
 
 export class CSSImageValue extends CSSStyleValue {
-  constructor(public cssText?: string) {
-    super();
+  constructor(cssText?: string) {
+    super(cssText);
   }
 
   get [Symbol.toStringTag]() {

@@ -4,6 +4,10 @@ export abstract class CSSTransformComponent {
   abstract is2D: boolean;
   abstract toMatrix(): DOMMatrix;
   abstract toString(): string;
+
+  get [Symbol.toStringTag]() {
+    return this.constructor.name;
+  }
 }
 
 export function isNumberValue(val: CSSNumberish): boolean {

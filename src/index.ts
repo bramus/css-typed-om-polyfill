@@ -138,7 +138,7 @@ if (typeof window !== 'undefined') {
   // Patch Element.prototype.computedStyleMap
   if (!Element.prototype.computedStyleMap) {
     Element.prototype.computedStyleMap = function(this: Element) {
-      return new CSSComputedStylePropertyMap(window.getComputedStyle(this));
+      return new CSSComputedStylePropertyMap(this, window.getComputedStyle(this));
     } as any;
   }
 

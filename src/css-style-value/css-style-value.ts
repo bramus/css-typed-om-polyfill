@@ -10,8 +10,16 @@ export function registerParsers(p: ParserFn, ap: AllParserFn) {
 }
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssstylevalue
-export abstract class CSSStyleValue {
-  abstract toString(): string;
+export class CSSStyleValue {
+  constructor(protected cssText?: string) {}
+
+  get [Symbol.toStringTag]() {
+    return this.constructor.name;
+  }
+
+  toString(): string {
+    return this.cssText || '';
+  }
 
   static parse(property: string, cssText: string): CSSStyleValue {
     if (!parser) {

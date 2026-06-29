@@ -70,6 +70,11 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
     throw new SyntaxError('Empty CSS text');
   }
 
+  if (property.startsWith('--')) {
+    const tokens = tokenizeString(trimmed);
+    return parseUnparsedValue(tokens);
+  }
+
   // 1. Try to parse as a numeric value
   try {
     return parseCSSNumericValue(trimmed);
@@ -94,11 +99,13 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
     } catch (e) {}
   }
 
-  // 4. Try to parse as a color value (if property is color/background-color/etc. or if it looks like one)
-  if (property.toLowerCase().includes('color') || isColorValue(tokens, trimmed)) {
+  // 4. Try to parse as a color value
+  if (isColorValue(tokens, trimmed)) {
     try {
       return parseColorValue(tokens, trimmed);
-    } catch (e) {}
+    } catch (e) {
+      return new CSSStyleValue(trimmed);
+    }
   }
 
   // Try to parse as an image value
@@ -111,8 +118,8 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
     return new CSSKeywordValue(tokens[0].value);
   }
 
-  // 6. Fallback to CSSUnparsedValue
-  return parseUnparsedValue(tokens);
+  // 6. Fallback to CSSStyleValue (unsupported values)
+  return new CSSStyleValue(trimmed);
 }
 
 function tokensToString(tokens: Token[]): string {
