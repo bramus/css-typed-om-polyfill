@@ -1,5 +1,5 @@
 import { CSSColorValue, toRGBComponent, toPercentComponent, type CSSColorRGBComp, type CSSColorPercent } from './css-color-value';
-import { type CSSNumberish } from '../css-numeric-value';
+import { type CSSNumberish, CSSUnitValue } from '../css-numeric-value';
 import { CSSKeywordValue } from '../css-style-value';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssrgb
@@ -75,6 +75,23 @@ export class CSSRGB extends CSSColorValue {
   }
 
   toString(): string {
-    return `color(srgb ${this.r.toString()} ${this.g.toString()} ${this.b.toString()} / ${this.alpha.toString()})`;
+    const r = this.r.toString();
+    const g = this.g.toString();
+    const b = this.b.toString();
+    
+    let alphaVal = 1;
+    if (this.alpha instanceof CSSUnitValue) {
+      if (this.alpha.unit === 'percent') {
+        alphaVal = this.alpha.value / 100;
+      } else if (this.alpha.unit === 'number') {
+        alphaVal = this.alpha.value;
+      }
+    }
+    
+    if (alphaVal === 1) {
+      return `rgb(${r}, ${g}, ${b})`;
+    } else {
+      return `rgba(${r}, ${g}, ${b}, ${alphaVal})`;
+    }
   }
 }

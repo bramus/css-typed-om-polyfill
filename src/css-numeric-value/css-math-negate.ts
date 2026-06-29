@@ -27,7 +27,20 @@ export class CSSMathNegate extends CSSMathValue {
     return this.value.type();
   }
 
-  toString(): string {
-    return `calc(-${this.value.toString()})`;
+  _serialize(nested: boolean, parenLess: boolean): string {
+    let s = '';
+    if (parenLess) {
+      // continue
+    } else if (nested) {
+      s += '(';
+    } else {
+      s += 'calc(';
+    }
+    s += '-';
+    s += this.value._serialize(true, false);
+    if (!parenLess) {
+      s += ')';
+    }
+    return s;
   }
 }

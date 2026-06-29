@@ -38,7 +38,20 @@ export class CSSMathInvert extends CSSMathValue {
     return result;
   }
 
-  toString(): string {
-    return `calc(1 / ${this.value.toString()})`;
+  _serialize(nested: boolean, parenLess: boolean): string {
+    let s = '';
+    if (parenLess) {
+      // continue
+    } else if (nested) {
+      s += '(';
+    } else {
+      s += 'calc(';
+    }
+    s += '1 / ';
+    s += this.value._serialize(true, false);
+    if (!parenLess) {
+      s += ')';
+    }
+    return s;
   }
 }

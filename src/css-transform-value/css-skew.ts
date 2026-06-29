@@ -1,5 +1,5 @@
 import { CSSTransformComponent } from './css-transform-component';
-import { CSSNumericValue, matchesAngle } from '../css-numeric-value';
+import { CSSNumericValue, CSSUnitValue, matchesAngle } from '../css-numeric-value';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssskew
 export class CSSSkew extends CSSTransformComponent {
@@ -62,6 +62,9 @@ export class CSSSkew extends CSSTransformComponent {
   }
 
   toString(): string {
+    if (this.ay instanceof CSSUnitValue && this.ay.value === 0) {
+      return `skew(${this.ax.toString()})`;
+    }
     return `skew(${this.ax.toString()}, ${this.ay.toString()})`;
   }
 }

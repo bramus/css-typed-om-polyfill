@@ -41,8 +41,8 @@ export class CSSMathMax extends CSSMathValue {
     return result;
   }
 
-  toString(): string {
-    const argStr = Array.from(this.values).map(val => val.toString()).join(', ');
+  _serialize(nested: boolean, parenLess: boolean): string {
+    const argStr = Array.from(this.values).map(val => val._serialize(true, true)).join(', ');
     return `max(${argStr})`;
   }
 }

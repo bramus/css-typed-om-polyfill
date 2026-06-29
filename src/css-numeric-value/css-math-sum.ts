@@ -2,6 +2,8 @@ import { CSSMathValue } from './css-math-value';
 import { CSSNumericArray } from './css-numeric-array';
 import { type CSSNumberish, type CSSNumericType, toNumericValue, addTypes } from './css-numeric-value';
 
+import { toCanonical, compareTerms } from './serialization-helpers';
+
 // https://drafts.css-houdini.org/css-typed-om-1/#cssmathsum
 export class CSSMathSum extends CSSMathValue {
   private _values!: CSSNumericArray;
@@ -44,11 +46,36 @@ export class CSSMathSum extends CSSMathValue {
     return currentType;
   }
 
-  toString(): string {
-    if (this.values.length === 1) {
-      return `calc(${this.values[0]!.toString()})`;
+  _serialize(nested: boolean, parenLess: boolean): string {
+    let s = '';
+    if (parenLess) {
+      // continue
+    } else if (nested) {
+      s += '(';
+    } else {
+      s += 'calc(';
     }
-    const argStr = Array.from(this.values).map(val => val.toString()).join(' + ');
-    return `calc(${argStr})`;
+
+    const processedValues = Array.from(this.values)
+      .map(toCanonical)
+      .sort(compareTerms);
+
+    s += processedValues[0]!._serialize(true, false);
+
+    for (let i = 1; i < processedValues.length; i++) {
+      const arg = processedValues[i]!;
+      if (arg instanceof CSSMathValue && arg.operator === 'negate') {
+        s += ' - ';
+        s += (arg as any).value._serialize(true, false);
+      } else {
+        s += ' + ';
+        s += arg._serialize(true, false);
+      }
+    }
+
+    if (!parenLess) {
+      s += ')';
+    }
+    return s;
   }
 }

@@ -1,7 +1,9 @@
 import { CSSMathValue } from './css-math-value';
 import { CSSNumericArray } from './css-numeric-array';
-import { type CSSNumberish, type CSSNumericType, toNumericValue, createEmptyType, cleanType, multiplyTypes } from './css-numeric-value';
-import { CSSMathSum } from './css-math-sum';
+import { CSSNumericValue, type CSSNumberish, type CSSNumericType, toNumericValue, createEmptyType, cleanType, multiplyTypes } from './css-numeric-value';
+import { toCanonical, compareTerms } from './serialization-helpers';
+
+
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssmathproduct
 export class CSSMathProduct extends CSSMathValue {
@@ -43,13 +45,36 @@ export class CSSMathProduct extends CSSMathValue {
     return result;
   }
 
-  toString(): string {
-    const argStr = Array.from(this.values).map(val => {
-      if (val instanceof CSSMathSum) {
-        return `(${val.toString()})`;
+  _serialize(nested: boolean, parenLess: boolean): string {
+    let s = '';
+    if (parenLess) {
+      // continue
+    } else if (nested) {
+      s += '(';
+    } else {
+      s += 'calc(';
+    }
+
+    const processedValues = Array.from(this.values)
+      .map(toCanonical)
+      .sort(compareTerms);
+
+    s += processedValues[0]!._serialize(true, false);
+
+    for (let i = 1; i < processedValues.length; i++) {
+      const arg = processedValues[i]!;
+      if (arg instanceof CSSMathValue && arg.operator === 'invert') {
+        s += ' / ';
+        s += (arg as any).value._serialize(true, false);
+      } else {
+        s += ' * ';
+        s += arg._serialize(true, false);
       }
-      return val.toString();
-    }).join(' * ');
-    return `calc(${argStr})`;
+    }
+
+    if (!parenLess) {
+      s += ')';
+    }
+    return s;
   }
 }

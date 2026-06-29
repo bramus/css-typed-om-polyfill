@@ -51,13 +51,56 @@ export class CSSUnitValue extends CSSNumericValue {
     return createAType(this.unit)!;
   }
 
-  toString(): string {
+  _serialize(
+    nested: boolean,
+    parenLess: boolean,
+    minimum?: CSSNumericValue,
+    maximum?: CSSNumericValue
+  ): string {
+    let s = '';
     if (this.unit === 'number') {
-      return `${this.value}`;
+      s = `${this.value}`;
+    } else if (this.unit === 'percent') {
+      s = `${this.value}%`;
+    } else {
+      s = `${this.value}${this.unit}`;
     }
-    if (this.unit === 'percent') {
-      return `${this.value}%`;
+
+    let wrapInCalc = false;
+    if (minimum instanceof CSSUnitValue) {
+      if (this.unit === minimum.unit) {
+        if (this.value < minimum.value) {
+          wrapInCalc = true;
+        }
+      } else {
+        if (minimum.value === 0 && this.value < 0) {
+          wrapInCalc = true;
+        } else {
+          wrapInCalc = true;
+        }
+      }
     }
-    return `${this.value}${this.unit}`;
+    if (maximum instanceof CSSUnitValue) {
+      if (this.unit === maximum.unit) {
+        if (this.value > maximum.value) {
+          wrapInCalc = true;
+        }
+      } else {
+        if (maximum.value === 0 && this.value > 0) {
+          wrapInCalc = true;
+        } else {
+          wrapInCalc = true;
+        }
+      }
+    }
+
+    if ((minimum && !(minimum instanceof CSSUnitValue)) || (maximum && !(maximum instanceof CSSUnitValue))) {
+      wrapInCalc = true;
+    }
+
+    if (wrapInCalc) {
+      return `calc(${s})`;
+    }
+    return s;
   }
 }

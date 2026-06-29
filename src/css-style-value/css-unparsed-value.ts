@@ -47,13 +47,33 @@ export class CSSUnparsedValue extends CSSStyleValue {
   }
 
   toString(): string {
-    return this._segments.map(segment => {
+    const serializedSegments = this._segments.map(segment => {
       if (typeof segment === 'string') {
         return segment;
       } else {
-        const fallbackStr = segment.fallback ? `, ${segment.fallback.toString()}` : '';
+        const fallbackStr = segment.fallback ? `,${segment.fallback.toString()}` : '';
         return `var(${segment.variable}${fallbackStr})`;
       }
-    }).join('');
+    });
+
+    if (serializedSegments.length === 0) {
+      return '';
+    }
+
+    let result = serializedSegments[0]!;
+    for (let i = 1; i < serializedSegments.length; i++) {
+      const next = serializedSegments[i]!;
+      if (result === '' || next === '') {
+        result += next;
+        continue;
+      }
+      const lastChar = result[result.length - 1]!;
+      const firstChar = next[0]!;
+      if (/[\w-]/.test(lastChar) && /[\w-]/.test(firstChar)) {
+        result += '/**/';
+      }
+      result += next;
+    }
+    return result;
   }
 }

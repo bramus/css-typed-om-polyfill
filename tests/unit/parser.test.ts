@@ -62,11 +62,11 @@ describe('CSS Value Parser', () => {
   it('should parse color values', () => {
     const valHex = parseCSSValue('color', '#ff0000');
     expect(valHex).toBeInstanceOf(CSSRGB);
-    expect(valHex.toString()).toBe('color(srgb 255 0 0 / 100%)');
+    expect(valHex.toString()).toBe('rgb(255, 0, 0)');
 
     const valNamed = parseCSSValue('color', 'red');
-    expect(valNamed).toBeInstanceOf(CSSRGB);
-    expect(valNamed.toString()).toBe('color(srgb 255 0 0 / 100%)');
+    expect(valNamed).toBeInstanceOf(CSSKeywordValue);
+    expect(valNamed.toString()).toBe('red');
 
     const valHsl = parseCSSValue('color', 'hsl(120 100% 50%)');
     expect(valHsl).toBeInstanceOf(CSSHSL);

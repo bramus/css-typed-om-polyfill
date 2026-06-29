@@ -445,10 +445,8 @@ function parseColorValue(tokens: Token[], cssText: string): CSSColorValue | CSSS
   // 2. Named color / System color
   if (tokens.length === 1 && tokens[0] instanceof IdentToken) {
     const name = tokens[0].value.toLowerCase();
-    const rgb = colorNames[name];
-    if (rgb) {
-      const alpha = typeof rgb[3] === 'number' ? rgb[3] : 1;
-      return new CSSRGB(new CSSUnitValue(rgb[0], 'number'), new CSSUnitValue(rgb[1], 'number'), new CSSUnitValue(rgb[2], 'number'), alpha);
+    if (colorNames[name]) {
+      return new CSSKeywordValue(name);
     }
     if (systemColors.has(name)) {
       return new CSSKeywordValue(name);
@@ -458,12 +456,33 @@ function parseColorValue(tokens: Token[], cssText: string): CSSColorValue | CSSS
   // 3. Color function
   if (tokens[0] instanceof FunctionToken) {
     const name = tokens[0].value.toLowerCase();
-    // Filter out commas, slashes, etc.
-    const args = tokens.slice(1).filter(t => !(t instanceof WhitespaceToken || t instanceof CommaToken || (t instanceof DelimToken && t.value === '/')));
-    // Remove the trailing RightParenthesisToken
-    if (args[args.length - 1] instanceof RightParenthesisToken) {
-      args.pop();
+    
+    // Find matching parenthesis
+    let parenLevel = 1;
+    let j = 1;
+    while (j < tokens.length && parenLevel > 0) {
+      const t = tokens[j]!;
+      if (t instanceof LeftParenthesisToken || t instanceof FunctionToken) {
+        parenLevel++;
+      } else if (t instanceof RightParenthesisToken) {
+        parenLevel--;
+      }
+      j++;
     }
+    if (parenLevel > 0) {
+      throw new DOMException('Unmatched parenthesis', 'SyntaxError');
+    }
+    
+    // Check for extra tokens
+    for (let k = j; k < tokens.length; k++) {
+      if (!(tokens[k] instanceof WhitespaceToken)) {
+        throw new DOMException('Extra tokens after color function', 'SyntaxError');
+      }
+    }
+    
+    // Filter out commas, slashes, etc. from tokens inside the function
+    const funcTokens = tokens.slice(1, j - 1);
+    const args = funcTokens.filter(t => !(t instanceof WhitespaceToken || t instanceof CommaToken || (t instanceof DelimToken && t.value === '/')));
 
     const reifyArg = (t: Token | undefined): CSSNumericValue | CSSKeywordValue => {
       if (!t) throw new DOMException('Missing color argument', 'SyntaxError');

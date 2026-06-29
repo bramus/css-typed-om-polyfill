@@ -27,6 +27,9 @@ export class CSSKeywordValue extends CSSStyleValue {
   }
 
   toString(): string {
+    if (typeof CSS !== 'undefined' && CSS.escape) {
+      return CSS.escape(this.value);
+    }
     return this.value;
   }
 }

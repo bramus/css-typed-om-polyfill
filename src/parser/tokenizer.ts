@@ -399,6 +399,26 @@ function consumeIdentLikeToken(input: InputStream): Token {
 }
 
 function consumeToken(input: InputStream): Token | undefined {
+  while (true) {
+    const peek = input.peek();
+    if (peek[0] === 0x002F && peek[1] === 0x002A) { // U+002F SOLIDUS (/), U+002A ASTERISK (*)
+      input.consume(); // consume /
+      input.consume(); // consume *
+      while (true) {
+        const c = input.consume();
+        if (typeof c === 'undefined') {
+          break; // EOF
+        }
+        if (c === 0x002A && input.peek()[0] === 0x002F) {
+          input.consume(); // consume /
+          break;
+        }
+      }
+      continue;
+    }
+    break;
+  }
+
   const codePoint = input.consume();
   const lookahead = input.peek();
 

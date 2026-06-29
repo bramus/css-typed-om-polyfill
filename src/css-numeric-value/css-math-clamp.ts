@@ -55,7 +55,10 @@ export class CSSMathClamp extends CSSMathValue {
     return addTypes(tLV!, this.upper.type())!;
   }
 
-  toString(): string {
-    return `clamp(${this.lower.toString()}, ${this.value.toString()}, ${this.upper.toString()})`;
+  _serialize(nested: boolean, parenLess: boolean): string {
+    const lower = this.lower._serialize(true, true);
+    const value = this.value._serialize(true, true);
+    const upper = this.upper._serialize(true, true);
+    return `clamp(${lower}, ${value}, ${upper})`;
   }
 }

@@ -11,7 +11,7 @@ describe('CSSColorValue and Subclasses', () => {
     expect(color.g.toString()).toBe('0');
     expect(color.b.toString()).toBe('0');
     expect(color.alpha.toString()).toBe('50%');
-    expect(color.toString()).toBe('color(srgb 255 0 0 / 50%)');
+    expect(color.toString()).toBe('rgba(255, 0, 0, 0.5)');
   });
 
   it('should construct and stringify CSSHSL', () => {
@@ -27,7 +27,7 @@ describe('CSSColorValue and Subclasses', () => {
   it('should parse colors using CSSColorValue.parse()', () => {
     const parsedHex = CSSColorValue.parse('#00ff00');
     expect(parsedHex).toBeInstanceOf(CSSRGB);
-    expect(parsedHex.toString()).toBe('color(srgb 0 255 0 / 100%)');
+    expect(parsedHex.toString()).toBe('rgb(0, 255, 0)');
 
     const parsedHsl = CSSColorValue.parse('hsl(240deg 100% 50%)');
     expect(parsedHsl).toBeInstanceOf(CSSHSL);

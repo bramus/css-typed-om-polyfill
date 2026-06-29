@@ -1,5 +1,5 @@
 import { CSSTransformComponent } from './css-transform-component';
-import { CSSNumericValue, matchesLength } from '../css-numeric-value';
+import { CSSNumericValue, CSSUnitValue, matchesLength } from '../css-numeric-value';
 import { CSSKeywordValue } from '../css-style-value';
 
 export type CSSPerspectiveValue = CSSNumericValue | CSSKeywordValue;
@@ -69,6 +69,10 @@ export class CSSPerspective extends CSSTransformComponent {
   }
 
   toString(): string {
+    if (this.length instanceof CSSNumericValue) {
+      const min = new CSSUnitValue(0, 'px');
+      return `perspective(${this.length._serialize(false, false, min)})`;
+    }
     return `perspective(${this.length.toString()})`;
   }
 }

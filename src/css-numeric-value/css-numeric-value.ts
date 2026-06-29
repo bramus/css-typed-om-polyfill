@@ -106,6 +106,12 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     }
   }
 
+  abstract _serialize(nested: boolean, parenLess: boolean, minimum?: CSSNumericValue, maximum?: CSSNumericValue): string;
+
+  toString(): string {
+    return this._serialize(false, false);
+  }
+
   type(): CSSNumericType {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
