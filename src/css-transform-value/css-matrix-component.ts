@@ -6,8 +6,8 @@ export interface CSSMatrixComponentOptions {
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssmatrixcomponent
 export class CSSMatrixComponent extends CSSTransformComponent {
-  public matrix: DOMMatrix;
-  public is2D: boolean;
+  private _matrix!: DOMMatrix;
+  private _is2D!: boolean;
 
   constructor(matrix: DOMMatrixReadOnly, options?: CSSMatrixComponentOptions) {
     super();
@@ -17,6 +17,37 @@ export class CSSMatrixComponent extends CSSTransformComponent {
       is2D = options.is2D;
     }
     this.is2D = typeof is2D === 'boolean' ? is2D : matrix.is2D;
+  }
+
+  get matrix(): DOMMatrix {
+    if (!(this instanceof CSSMatrixComponent)) {
+      throw new TypeError("Value of 'this' is not a CSSMatrixComponent");
+    }
+    return this._matrix;
+  }
+
+  set matrix(val: DOMMatrix) {
+    if (!(this instanceof CSSMatrixComponent)) {
+      throw new TypeError("Value of 'this' is not a CSSMatrixComponent");
+    }
+    if (!(val instanceof DOMMatrix)) {
+      throw new TypeError('CSSMatrixComponent.matrix must be a DOMMatrix');
+    }
+    this._matrix = val;
+  }
+
+  get is2D(): boolean {
+    if (!(this instanceof CSSMatrixComponent)) {
+      throw new TypeError("Value of 'this' is not a CSSMatrixComponent");
+    }
+    return this._is2D;
+  }
+
+  set is2D(val: boolean) {
+    if (!(this instanceof CSSMatrixComponent)) {
+      throw new TypeError("Value of 'this' is not a CSSMatrixComponent");
+    }
+    this._is2D = val;
   }
 
   toMatrix(): DOMMatrix {

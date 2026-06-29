@@ -3,7 +3,7 @@ import { CSSNumericArray } from './css-numeric-array';
 import { type CSSNumberish, type CSSNumericType, toNumericValue, addTypes } from './css-numeric-value';
 
 export class CSSMathMin extends CSSMathValue {
-  public values: CSSNumericArray;
+  private _values!: CSSNumericArray;
 
   constructor(...args: CSSNumberish[]) {
     super();
@@ -11,11 +11,21 @@ export class CSSMathMin extends CSSMathValue {
     if (values.length === 0) {
       throw new DOMException('CSSMathMin requires at least one argument', 'SyntaxError');
     }
-    this.values = CSSNumericArray.create(values);
+    this._values = CSSNumericArray.create(values);
     this.type();
   }
 
+  get values(): CSSNumericArray {
+    if (!(this instanceof CSSMathMin)) {
+      throw new TypeError("Value of 'this' is not a CSSMathMin");
+    }
+    return this._values;
+  }
+
   get operator(): string {
+    if (!(this instanceof CSSMathMin)) {
+      throw new TypeError("Value of 'this' is not a CSSMathMin");
+    }
     return 'min';
   }
 

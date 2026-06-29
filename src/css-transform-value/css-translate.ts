@@ -21,24 +21,48 @@ export class CSSTranslate extends CSSTransformComponent {
     }
   }
 
-  get x(): CSSNumericValue { return this._x; }
+  get x(): CSSNumericValue {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
+    return this._x;
+  }
   set x(val: CSSNumericValue) {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
     if (!(val instanceof CSSNumericValue) || !matchesLengthPercentage(val.type())) {
       throw new TypeError('CSSTranslate.x must be a length or percentage');
     }
     this._x = val;
   }
 
-  get y(): CSSNumericValue { return this._y; }
+  get y(): CSSNumericValue {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
+    return this._y;
+  }
   set y(val: CSSNumericValue) {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
     if (!(val instanceof CSSNumericValue) || !matchesLengthPercentage(val.type())) {
       throw new TypeError('CSSTranslate.y must be a length or percentage');
     }
     this._y = val;
   }
 
-  get z(): CSSNumericValue { return this._z; }
+  get z(): CSSNumericValue {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
+    return this._z;
+  }
   set z(val: CSSNumericValue) {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
     if (!(val instanceof CSSNumericValue) || !matchesLength(val.type())) {
       throw new TypeError('CSSTranslate.z must be a length');
     }
@@ -46,10 +70,16 @@ export class CSSTranslate extends CSSTransformComponent {
   }
 
   get is2D(): boolean {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
     return this._is2D;
   }
 
   set is2D(value: boolean) {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
     this._is2D = value;
     if (value) {
       this._z = new CSSUnitValue(0, 'px');

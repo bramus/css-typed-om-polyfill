@@ -99,15 +99,36 @@ function equalNumericValue(v1: CSSNumericValue, v2: CSSNumericValue): boolean {
 }
 
 export abstract class CSSNumericValue extends CSSStyleValue {
-  abstract type(): CSSNumericType;
+  constructor() {
+    super();
+    if (this.constructor === CSSNumericValue) {
+      throw new TypeError('CSSNumericValue cannot be directly constructed');
+    }
+  }
+
+  type(): CSSNumericType {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
+    throw new TypeError('Abstract method');
+  }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-parse
   static parse(cssText: string): CSSNumericValue {
+    if (this instanceof CSSStyleValue && arguments.length < 2) {
+      throw new TypeError(`Failed to execute 'parse' on 'CSSStyleValue': 2 arguments required, but only ${arguments.length} present.`);
+    }
+    if (arguments.length < 1) {
+      throw new TypeError(`Failed to execute 'parse' on 'CSSNumericValue': 1 argument required, but only ${arguments.length} present.`);
+    }
     return parseCSSNumericValue(cssText);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-add
   add(...values: CSSNumberish[]): CSSNumericValue {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     const rectifiedValues = values.map(toNumericValue);
     const allValues: CSSNumericValue[] = [];
     if (this instanceof CSSMathSumClass || (this as any).operator === 'sum') {
@@ -141,6 +162,9 @@ export abstract class CSSNumericValue extends CSSStyleValue {
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-sub
   sub(...values: CSSNumberish[]): CSSNumericValue {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     const rectified = values.map(toNumericValue);
     const negated = mapNegate(rectified);
     return this.add(...negated);
@@ -148,6 +172,9 @@ export abstract class CSSNumericValue extends CSSStyleValue {
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-mul
   mul(...values: CSSNumberish[]): CSSNumericValue {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     const rectifiedValues = values.map(toNumericValue);
     const allValues: CSSNumericValue[] = [];
     if (this instanceof CSSMathProductClass || (this as any).operator === 'product') {
@@ -184,6 +211,9 @@ export abstract class CSSNumericValue extends CSSStyleValue {
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-div
   div(...values: CSSNumberish[]): CSSNumericValue {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     const rectified = values.map(toNumericValue);
     const inverted = mapInvert(rectified);
     return this.mul(...inverted);
@@ -191,6 +221,9 @@ export abstract class CSSNumericValue extends CSSStyleValue {
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-min
   min(...values: CSSNumberish[]): CSSNumericValue {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     const rectifiedValues = values.map(toNumericValue);
     const allValues: CSSNumericValue[] = [];
     if (this instanceof CSSMathMinClass || (this as any).operator === 'min') {
@@ -224,6 +257,9 @@ export abstract class CSSNumericValue extends CSSStyleValue {
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-max
   max(...values: CSSNumberish[]): CSSNumericValue {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     const rectifiedValues = values.map(toNumericValue);
     const allValues: CSSNumericValue[] = [];
     if (this instanceof CSSMathMaxClass || (this as any).operator === 'max') {
@@ -257,6 +293,9 @@ export abstract class CSSNumericValue extends CSSStyleValue {
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-equals
   equals(...values: CSSNumberish[]): boolean {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     const numerics = values.map(toNumericValue);
     for (const val of numerics) {
       if (!equalNumericValue(this, val)) {
@@ -268,11 +307,17 @@ export abstract class CSSNumericValue extends CSSStyleValue {
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-to
   to(unit: string): CSSUnitValue {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     return to(this, unit);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-tosum
   toSum(...units: string[]): CSSMathSum {
+    if (!(this instanceof CSSNumericValue)) {
+      throw new TypeError("Value of 'this' is not a CSSNumericValue");
+    }
     return toSum(this, ...units);
   }
 }

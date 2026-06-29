@@ -33,32 +33,64 @@ export class CSSRotate extends CSSTransformComponent {
     }
   }
 
-  get x(): CSSNumberish { return this._x; }
+  get x(): CSSNumberish {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
+    return this._x;
+  }
   set x(val: CSSNumberish) {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
     if (!isNumberValue(val)) {
       throw new TypeError('CSSRotate.x must be a number');
     }
     this._x = toNumericValue(val);
   }
 
-  get y(): CSSNumberish { return this._y; }
+  get y(): CSSNumberish {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
+    return this._y;
+  }
   set y(val: CSSNumberish) {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
     if (!isNumberValue(val)) {
       throw new TypeError('CSSRotate.y must be a number');
     }
     this._y = toNumericValue(val);
   }
 
-  get z(): CSSNumberish { return this._z; }
+  get z(): CSSNumberish {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
+    return this._z;
+  }
   set z(val: CSSNumberish) {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
     if (!isNumberValue(val)) {
       throw new TypeError('CSSRotate.z must be a number');
     }
     this._z = toNumericValue(val);
   }
 
-  get angle(): CSSNumericValue { return this._angle; }
+  get angle(): CSSNumericValue {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
+    return this._angle;
+  }
   set angle(val: CSSNumericValue) {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
     if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
       throw new TypeError('CSSRotate.angle must be an angle');
     }
@@ -66,10 +98,16 @@ export class CSSRotate extends CSSTransformComponent {
   }
 
   get is2D(): boolean {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
     return this._is2D;
   }
 
   set is2D(value: boolean) {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
     this._is2D = value;
     if (value) {
       this.x = 0;

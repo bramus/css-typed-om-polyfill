@@ -10,8 +10,16 @@ export class CSSSkewY extends CSSTransformComponent {
     this.ay = ay;
   }
 
-  get ay(): CSSNumericValue { return this._ay; }
+  get ay(): CSSNumericValue {
+    if (!(this instanceof CSSSkewY)) {
+      throw new TypeError("Value of 'this' is not a CSSSkewY");
+    }
+    return this._ay;
+  }
   set ay(val: CSSNumericValue) {
+    if (!(this instanceof CSSSkewY)) {
+      throw new TypeError("Value of 'this' is not a CSSSkewY");
+    }
     if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
       throw new TypeError('CSSSkewY.ay must be an angle');
     }

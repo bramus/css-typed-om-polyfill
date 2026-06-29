@@ -3,7 +3,7 @@ import { CSSNumericArray } from './css-numeric-array';
 import { type CSSNumberish, type CSSNumericType, toNumericValue, addTypes } from './css-numeric-value';
 
 export class CSSMathMax extends CSSMathValue {
-  public values: CSSNumericArray;
+  private _values!: CSSNumericArray;
 
   constructor(...args: CSSNumberish[]) {
     super();
@@ -11,11 +11,21 @@ export class CSSMathMax extends CSSMathValue {
     if (values.length === 0) {
       throw new DOMException('CSSMathMax requires at least one argument', 'SyntaxError');
     }
-    this.values = CSSNumericArray.create(values);
+    this._values = CSSNumericArray.create(values);
     this.type();
   }
 
+  get values(): CSSNumericArray {
+    if (!(this instanceof CSSMathMax)) {
+      throw new TypeError("Value of 'this' is not a CSSMathMax");
+    }
+    return this._values;
+  }
+
   get operator(): string {
+    if (!(this instanceof CSSMathMax)) {
+      throw new TypeError("Value of 'this' is not a CSSMathMax");
+    }
     return 'max';
   }
 

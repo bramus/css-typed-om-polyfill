@@ -10,10 +10,16 @@ export class CSSKeywordValue extends CSSStyleValue {
   }
 
   get value(): string {
+    if (!(this instanceof CSSKeywordValue)) {
+      throw new TypeError("Value of 'this' is not a CSSKeywordValue");
+    }
     return this._value;
   }
 
   set value(val: string) {
+    if (!(this instanceof CSSKeywordValue)) {
+      throw new TypeError("Value of 'this' is not a CSSKeywordValue");
+    }
     if (typeof val !== 'string' || val === '') {
       throw new TypeError('CSSKeywordValue value must be a non-empty string');
     }

@@ -14,7 +14,17 @@ export function registerColorParser(cp: (cssText: string) => any) {
 
 // https://drafts.css-houdini.org/css-typed-om-1/#csscolorvalue
 export abstract class CSSColorValue extends CSSStyleValue {
+  constructor() {
+    super();
+    if (this.constructor === CSSColorValue) {
+      throw new TypeError('CSSColorValue cannot be directly constructed');
+    }
+  }
+
   static parse(cssText: string): CSSColorValue | CSSStyleValue {
+    if (arguments.length < 1) {
+      throw new TypeError(`Failed to execute 'parse' on 'CSSColorValue': 1 argument required, but only ${arguments.length} present.`);
+    }
     if (!colorParser) {
       throw new Error('Color parser not registered. Make sure to import the index entry point.');
     }

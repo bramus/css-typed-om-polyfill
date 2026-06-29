@@ -12,16 +12,32 @@ export class CSSSkew extends CSSTransformComponent {
     this.ay = ay;
   }
 
-  get ax(): CSSNumericValue { return this._ax; }
+  get ax(): CSSNumericValue {
+    if (!(this instanceof CSSSkew)) {
+      throw new TypeError("Value of 'this' is not a CSSSkew");
+    }
+    return this._ax;
+  }
   set ax(val: CSSNumericValue) {
+    if (!(this instanceof CSSSkew)) {
+      throw new TypeError("Value of 'this' is not a CSSSkew");
+    }
     if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
       throw new TypeError('CSSSkew.ax must be an angle');
     }
     this._ax = val;
   }
 
-  get ay(): CSSNumericValue { return this._ay; }
+  get ay(): CSSNumericValue {
+    if (!(this instanceof CSSSkew)) {
+      throw new TypeError("Value of 'this' is not a CSSSkew");
+    }
+    return this._ay;
+  }
   set ay(val: CSSNumericValue) {
+    if (!(this instanceof CSSSkew)) {
+      throw new TypeError("Value of 'this' is not a CSSSkew");
+    }
     if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
       throw new TypeError('CSSSkew.ay must be an angle');
     }

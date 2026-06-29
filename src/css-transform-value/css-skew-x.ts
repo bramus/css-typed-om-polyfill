@@ -10,8 +10,16 @@ export class CSSSkewX extends CSSTransformComponent {
     this.ax = ax;
   }
 
-  get ax(): CSSNumericValue { return this._ax; }
+  get ax(): CSSNumericValue {
+    if (!(this instanceof CSSSkewX)) {
+      throw new TypeError("Value of 'this' is not a CSSSkewX");
+    }
+    return this._ax;
+  }
   set ax(val: CSSNumericValue) {
+    if (!(this instanceof CSSSkewX)) {
+      throw new TypeError("Value of 'this' is not a CSSSkewX");
+    }
     if (!(val instanceof CSSNumericValue) || !matchesAngle(val.type())) {
       throw new TypeError('CSSSkewX.ax must be an angle');
     }

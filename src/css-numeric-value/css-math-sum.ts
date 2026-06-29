@@ -4,7 +4,7 @@ import { type CSSNumberish, type CSSNumericType, toNumericValue, addTypes } from
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssmathsum
 export class CSSMathSum extends CSSMathValue {
-  public values: CSSNumericArray;
+  private _values!: CSSNumericArray;
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssmathsum-cssmathsum
   constructor(...args: CSSNumberish[]) {
@@ -13,11 +13,21 @@ export class CSSMathSum extends CSSMathValue {
     if (values.length === 0) {
       throw new DOMException('CSSMathSum requires at least one argument', 'SyntaxError');
     }
-    this.values = CSSNumericArray.create(values);
+    this._values = CSSNumericArray.create(values);
     this.type();
   }
 
+  get values(): CSSNumericArray {
+    if (!(this instanceof CSSMathSum)) {
+      throw new TypeError("Value of 'this' is not a CSSMathSum");
+    }
+    return this._values;
+  }
+
   get operator(): string {
+    if (!(this instanceof CSSMathSum)) {
+      throw new TypeError("Value of 'this' is not a CSSMathSum");
+    }
     return 'sum';
   }
 

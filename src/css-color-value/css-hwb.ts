@@ -22,23 +22,55 @@ export class CSSHWB extends CSSColorValue {
     this.alpha = alpha;
   }
 
-  get h(): CSSNumericValue { return this._h; }
+  get h(): CSSNumericValue {
+    if (!(this instanceof CSSHWB)) {
+      throw new TypeError("Value of 'this' is not a CSSHWB");
+    }
+    return this._h;
+  }
   set h(val: CSSNumericValue) {
+    if (!(this instanceof CSSHWB)) {
+      throw new TypeError("Value of 'this' is not a CSSHWB");
+    }
     this._h = toHWBHueComponent(val);
   }
 
-  get w(): CSSColorPercent { return this._w; }
+  get w(): CSSColorPercent {
+    if (!(this instanceof CSSHWB)) {
+      throw new TypeError("Value of 'this' is not a CSSHWB");
+    }
+    return this._w;
+  }
   set w(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSHWB)) {
+      throw new TypeError("Value of 'this' is not a CSSHWB");
+    }
     this._w = toPercentComponent(val, 'CSSHWB.w');
   }
 
-  get b(): CSSColorPercent { return this._b; }
+  get b(): CSSColorPercent {
+    if (!(this instanceof CSSHWB)) {
+      throw new TypeError("Value of 'this' is not a CSSHWB");
+    }
+    return this._b;
+  }
   set b(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSHWB)) {
+      throw new TypeError("Value of 'this' is not a CSSHWB");
+    }
     this._b = toPercentComponent(val, 'CSSHWB.b');
   }
 
-  get alpha(): CSSColorPercent { return this._alpha; }
+  get alpha(): CSSColorPercent {
+    if (!(this instanceof CSSHWB)) {
+      throw new TypeError("Value of 'this' is not a CSSHWB");
+    }
+    return this._alpha;
+  }
   set alpha(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSHWB)) {
+      throw new TypeError("Value of 'this' is not a CSSHWB");
+    }
     this._alpha = toPercentComponent(val, 'CSSHWB.alpha');
   }
 

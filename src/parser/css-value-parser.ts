@@ -104,13 +104,13 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
     try {
       return parseColorValue(tokens, trimmed);
     } catch (e) {
-      return new CSSStyleValue(trimmed);
+      return new CSSStyleValue(trimmed, Symbol.for('css-typed-om-polyfill-private-token'));
     }
   }
 
   // Try to parse as an image value
   if (isImageValue(tokens, trimmed)) {
-    return new CSSImageValue(trimmed);
+    return new CSSImageValue(trimmed, Symbol.for('css-typed-om-polyfill-private-token'));
   }
 
   // 5. Try to parse as keyword
@@ -119,7 +119,7 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
   }
 
   // 6. Fallback to CSSStyleValue (unsupported values)
-  return new CSSStyleValue(trimmed);
+  return new CSSStyleValue(trimmed, Symbol.for('css-typed-om-polyfill-private-token'));
 }
 
 function tokensToString(tokens: Token[]): string {
@@ -258,6 +258,75 @@ function parseTransformValue(tokens: Token[]): CSSTransformValue {
   return new CSSTransformValue(components);
 }
 
+const reifyLengthPercent = (tokens: Token[] | undefined): CSSNumericValue => {
+  if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
+  if (tokens.length === 1) {
+    const t = tokens[0]!;
+    if (t instanceof NumberToken) {
+      if (t.value === 0) return new CSSUnitValue(0, 'px');
+      throw new TypeError('Expected length or percentage, got number');
+    }
+    if (t instanceof PercentageToken) return new CSSUnitValue(t.value, 'percent');
+    if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
+  }
+  const cssText = tokensToString(tokens);
+  try {
+    return parseCSSNumericValue(cssText);
+  } catch (e) {
+    throw new SyntaxError('Invalid transform argument');
+  }
+};
+
+const reifyLength = (tokens: Token[] | undefined): CSSNumericValue => {
+  if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
+  if (tokens.length === 1) {
+    const t = tokens[0]!;
+    if (t instanceof NumberToken) {
+      if (t.value === 0) return new CSSUnitValue(0, 'px');
+      throw new TypeError('Expected length, got number');
+    }
+    if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
+  }
+  const cssText = tokensToString(tokens);
+  try {
+    return parseCSSNumericValue(cssText);
+  } catch (e) {
+    throw new SyntaxError('Invalid transform argument');
+  }
+};
+
+const reifyAngle = (tokens: Token[] | undefined): CSSNumericValue => {
+  if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
+  if (tokens.length === 1) {
+    const t = tokens[0]!;
+    if (t instanceof NumberToken) {
+      if (t.value === 0) return new CSSUnitValue(0, 'deg');
+      throw new TypeError('Expected angle, got number');
+    }
+    if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
+  }
+  const cssText = tokensToString(tokens);
+  try {
+    return parseCSSNumericValue(cssText);
+  } catch (e) {
+    throw new SyntaxError('Invalid transform argument');
+  }
+};
+
+const reifyNumber = (tokens: Token[] | undefined): CSSNumericValue => {
+  if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
+  if (tokens.length === 1) {
+    const t = tokens[0]!;
+    if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'number');
+  }
+  const cssText = tokensToString(tokens);
+  try {
+    return parseCSSNumericValue(cssText);
+  } catch (e) {
+    throw new SyntaxError('Invalid transform argument');
+  }
+};
+
 function parseTransformComponent(name: string, argTokens: Token[]): CSSTransformComponent {
   // Split by top-level commas
   const args: Token[][] = [];
@@ -283,61 +352,45 @@ function parseTransformComponent(name: string, argTokens: Token[]): CSSTransform
     args.push(currentArg);
   }
 
-  const reifyArg = (tokens: Token[] | undefined): CSSNumericValue => {
-    if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
-    if (tokens.length === 1) {
-      const t = tokens[0]!;
-      if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'number');
-      if (t instanceof PercentageToken) return new CSSUnitValue(t.value, 'percent');
-      if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
-    }
-    const cssText = tokensToString(tokens);
-    try {
-      return parseCSSNumericValue(cssText);
-    } catch (e) {
-      throw new SyntaxError('Invalid transform argument');
-    }
-  };
-
   switch (name) {
     case 'translate':
-      return new CSSTranslate(reifyArg(args[0]), args[1] ? reifyArg(args[1]) : new CSSUnitValue(0, 'px'));
+      return new CSSTranslate(reifyLengthPercent(args[0]), args[1] ? reifyLengthPercent(args[1]) : new CSSUnitValue(0, 'px'));
     case 'translate3d':
-      return new CSSTranslate(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]));
+      return new CSSTranslate(reifyLengthPercent(args[0]), reifyLengthPercent(args[1]), reifyLength(args[2]));
     case 'translatex':
-      return new CSSTranslate(reifyArg(args[0]), new CSSUnitValue(0, 'px'));
+      return new CSSTranslate(reifyLengthPercent(args[0]), new CSSUnitValue(0, 'px'));
     case 'translatey':
-      return new CSSTranslate(new CSSUnitValue(0, 'px'), reifyArg(args[0]));
+      return new CSSTranslate(new CSSUnitValue(0, 'px'), reifyLengthPercent(args[0]));
     case 'translatez':
-      return new CSSTranslate(new CSSUnitValue(0, 'px'), new CSSUnitValue(0, 'px'), reifyArg(args[0]));
+      return new CSSTranslate(new CSSUnitValue(0, 'px'), new CSSUnitValue(0, 'px'), reifyLength(args[0]));
     case 'rotate':
-      return new CSSRotate(reifyArg(args[0]));
+      return new CSSRotate(reifyAngle(args[0]));
     case 'rotate3d':
-      return new CSSRotate(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), reifyArg(args[3]));
+      return new CSSRotate(reifyNumber(args[0]), reifyNumber(args[1]), reifyNumber(args[2]), reifyAngle(args[3]));
     case 'rotatex':
-      return new CSSRotate(1, 0, 0, reifyArg(args[0]));
+      return new CSSRotate(1, 0, 0, reifyAngle(args[0]));
     case 'rotatey':
-      return new CSSRotate(0, 1, 0, reifyArg(args[0]));
+      return new CSSRotate(0, 1, 0, reifyAngle(args[0]));
     case 'rotatez':
-      return new CSSRotate(0, 0, 1, reifyArg(args[0]));
+      return new CSSRotate(0, 0, 1, reifyAngle(args[0]));
     case 'scale':
-      return new CSSScale(reifyArg(args[0]), args[1] ? reifyArg(args[1]) : reifyArg(args[0]));
+      return new CSSScale(reifyNumber(args[0]), args[1] ? reifyNumber(args[1]) : reifyNumber(args[0]));
     case 'scale3d':
-      return new CSSScale(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]));
+      return new CSSScale(reifyNumber(args[0]), reifyNumber(args[1]), reifyNumber(args[2]));
     case 'scalex':
-      return new CSSScale(reifyArg(args[0]), 1);
+      return new CSSScale(reifyNumber(args[0]), 1);
     case 'scaley':
-      return new CSSScale(1, reifyArg(args[0]));
+      return new CSSScale(1, reifyNumber(args[0]));
     case 'scalez':
-      return new CSSScale(1, 1, reifyArg(args[0]));
+      return new CSSScale(1, 1, reifyNumber(args[0]));
     case 'skew':
-      return new CSSSkew(reifyArg(args[0]), args[1] ? reifyArg(args[1]) : new CSSUnitValue(0, 'deg'));
+      return new CSSSkew(reifyAngle(args[0]), args[1] ? reifyAngle(args[1]) : new CSSUnitValue(0, 'deg'));
     case 'skewx':
-      return new CSSSkewX(reifyArg(args[0]));
+      return new CSSSkewX(reifyAngle(args[0]));
     case 'skewy':
-      return new CSSSkewY(reifyArg(args[0]));
+      return new CSSSkewY(reifyAngle(args[0]));
     case 'perspective':
-      return new CSSPerspective(args[0] && args[0][0] instanceof IdentToken && args[0][0].value.toLowerCase() === 'none' ? new CSSKeywordValue('none') : reifyArg(args[0]));
+      return new CSSPerspective(args[0] && args[0][0] instanceof IdentToken && args[0][0].value.toLowerCase() === 'none' ? new CSSKeywordValue('none') : reifyLength(args[0]));
     case 'matrix': {
       const vals = args.map(arg => {
         if (arg.length !== 1 || !(arg[0] instanceof NumberToken)) {

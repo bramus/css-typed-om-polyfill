@@ -22,23 +22,55 @@ export class CSSLab extends CSSColorValue {
     this.alpha = alpha;
   }
 
-  get l(): CSSColorPercent { return this._l; }
+  get l(): CSSColorPercent {
+    if (!(this instanceof CSSLab)) {
+      throw new TypeError("Value of 'this' is not a CSSLab");
+    }
+    return this._l;
+  }
   set l(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSLab)) {
+      throw new TypeError("Value of 'this' is not a CSSLab");
+    }
     this._l = toPercentComponent(val, 'CSSLab.l');
   }
 
-  get a(): CSSColorNumber { return this._a; }
+  get a(): CSSColorNumber {
+    if (!(this instanceof CSSLab)) {
+      throw new TypeError("Value of 'this' is not a CSSLab");
+    }
+    return this._a;
+  }
   set a(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSLab)) {
+      throw new TypeError("Value of 'this' is not a CSSLab");
+    }
     this._a = toLabColorComponent(val, 'CSSLab.a');
   }
 
-  get b(): CSSColorNumber { return this._b; }
+  get b(): CSSColorNumber {
+    if (!(this instanceof CSSLab)) {
+      throw new TypeError("Value of 'this' is not a CSSLab");
+    }
+    return this._b;
+  }
   set b(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSLab)) {
+      throw new TypeError("Value of 'this' is not a CSSLab");
+    }
     this._b = toLabColorComponent(val, 'CSSLab.b');
   }
 
-  get alpha(): CSSColorPercent { return this._alpha; }
+  get alpha(): CSSColorPercent {
+    if (!(this instanceof CSSLab)) {
+      throw new TypeError("Value of 'this' is not a CSSLab");
+    }
+    return this._alpha;
+  }
   set alpha(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSLab)) {
+      throw new TypeError("Value of 'this' is not a CSSLab");
+    }
     this._alpha = toPercentComponent(val, 'CSSLab.alpha');
   }
 

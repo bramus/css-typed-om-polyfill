@@ -5,7 +5,7 @@ import { CSSMathSum } from './css-math-sum';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssmathproduct
 export class CSSMathProduct extends CSSMathValue {
-  public values: CSSNumericArray;
+  private _values!: CSSNumericArray;
 
   constructor(...args: CSSNumberish[]) {
     super();
@@ -13,11 +13,21 @@ export class CSSMathProduct extends CSSMathValue {
     if (values.length === 0) {
       throw new DOMException('CSSMathProduct requires at least one argument', 'SyntaxError');
     }
-    this.values = CSSNumericArray.create(values);
+    this._values = CSSNumericArray.create(values);
     this.type();
   }
 
+  get values(): CSSNumericArray {
+    if (!(this instanceof CSSMathProduct)) {
+      throw new TypeError("Value of 'this' is not a CSSMathProduct");
+    }
+    return this._values;
+  }
+
   get operator(): string {
+    if (!(this instanceof CSSMathProduct)) {
+      throw new TypeError("Value of 'this' is not a CSSMathProduct");
+    }
     return 'product';
   }
 

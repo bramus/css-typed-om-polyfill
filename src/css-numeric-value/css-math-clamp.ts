@@ -2,19 +2,19 @@ import { CSSMathValue } from './css-math-value';
 import { CSSNumericValue, type CSSNumericType, toNumericValue, addTypes, type CSSNumberish } from './css-numeric-value';
 
 export class CSSMathClamp extends CSSMathValue {
-  public lower: CSSNumericValue;
-  public value: CSSNumericValue;
-  public upper: CSSNumericValue;
+  private _lower!: CSSNumericValue;
+  private _value!: CSSNumericValue;
+  private _upper!: CSSNumericValue;
 
   constructor(lower: CSSNumberish, value: CSSNumberish, upper: CSSNumberish) {
     super();
-    this.lower = toNumericValue(lower);
-    this.value = toNumericValue(value);
-    this.upper = toNumericValue(upper);
+    this._lower = toNumericValue(lower);
+    this._value = toNumericValue(value);
+    this._upper = toNumericValue(upper);
 
-    const tL = this.lower.type();
-    const tV = this.value.type();
-    const tU = this.upper.type();
+    const tL = this._lower.type();
+    const tV = this._value.type();
+    const tU = this._upper.type();
 
     const tLV = addTypes(tL, tV);
     if (!tLV || !addTypes(tLV, tU)) {
@@ -22,7 +22,31 @@ export class CSSMathClamp extends CSSMathValue {
     }
   }
 
+  get lower(): CSSNumericValue {
+    if (!(this instanceof CSSMathClamp)) {
+      throw new TypeError("Value of 'this' is not a CSSMathClamp");
+    }
+    return this._lower;
+  }
+
+  get value(): CSSNumericValue {
+    if (!(this instanceof CSSMathClamp)) {
+      throw new TypeError("Value of 'this' is not a CSSMathClamp");
+    }
+    return this._value;
+  }
+
+  get upper(): CSSNumericValue {
+    if (!(this instanceof CSSMathClamp)) {
+      throw new TypeError("Value of 'this' is not a CSSMathClamp");
+    }
+    return this._upper;
+  }
+
   get operator(): string {
+    if (!(this instanceof CSSMathClamp)) {
+      throw new TypeError("Value of 'this' is not a CSSMathClamp");
+    }
     return 'clamp';
   }
 

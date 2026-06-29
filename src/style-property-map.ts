@@ -210,33 +210,6 @@ function isPendingSubstitution(style: CSSStyleDeclaration, property: string): bo
   return false;
 }
 
-export abstract class StylePropertyMapReadOnly {
-  abstract get(property: string): CSSStyleValue | undefined;
-  abstract getAll(property: string): CSSStyleValue[];
-  abstract has(property: string): boolean;
-  abstract get size(): number;
-
-  abstract keys(): IterableIterator<string>;
-  abstract values(): IterableIterator<CSSStyleValue[]>;
-  abstract entries(): IterableIterator<[string, CSSStyleValue[]]>;
-  abstract forEach(
-    callback: (value: CSSStyleValue[], key: string, map: StylePropertyMapReadOnly) => void,
-    thisArg?: any
-  ): void;
-
-  [Symbol.iterator](): IterableIterator<[string, CSSStyleValue[]]> {
-    return this.entries();
-  }
-}
-
-export abstract class StylePropertyMap extends StylePropertyMapReadOnly {
-  abstract set(property: string, ...values: (CSSStyleValue | string)[]): void;
-  abstract append(property: string, ...values: (CSSStyleValue | string)[]): void;
-  abstract delete(property: string): void;
-  abstract clear(): void;
-}
-
-// Concrete implementation backing Element.computedStyleMap()
 function hasExplicitMinSize(element: Element, property: string): boolean {
   const hasValue = (style: CSSStyleDeclaration) => {
     const val = style.getPropertyValue(property);
@@ -340,12 +313,20 @@ function getComputedBorderWidth(element: Element, property: string, style: CSSSt
   return style.getPropertyValue(property);
 }
 
-export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
-  constructor(private element: Element, private style: CSSStyleDeclaration) {
-    super();
+const privateToken = Symbol.for('css-typed-om-polyfill-private-token');
+
+// Concrete implementation backing Element.computedStyleMap()
+export class StylePropertyMapReadOnly {
+  constructor(protected element: Element | null, protected style: CSSStyleDeclaration, token?: any) {
+    if (token !== privateToken) {
+      throw new TypeError('Illegal constructor');
+    }
   }
 
   get(property: string): CSSStyleValue | undefined {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -353,7 +334,7 @@ export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
-    if (this.element instanceof HTMLElement) {
+    if (this.element && this.element instanceof HTMLElement) {
       const inlineVal = (this.element.attributeStyleMap as any).get(property) as CSSStyleValue | undefined;
       if (inlineVal && !opacityProperties.has(propLower)) {
         if (inlineVal instanceof CSSUnitValue && inlineVal.unit === 'percent') {
@@ -388,20 +369,20 @@ export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
       }
     }
     let value = this.style.getPropertyValue(property);
-    if (borderWidthProperties.has(propLower)) {
+    if (this.element && borderWidthProperties.has(propLower)) {
       value = getComputedBorderWidth(this.element, property, this.style);
     }
-    if ((propLower === 'min-width' || propLower === 'min-height') && value === '0px') {
+    if (this.element && (propLower === 'min-width' || propLower === 'min-height') && value === '0px') {
       if (!hasExplicitMinSize(this.element, propLower)) {
         value = 'auto';
       }
     }
     if (!value) return undefined;
     if (shouldFallbackToCSSStyleValue(property, value)) {
-      return new CSSStyleValue(value);
+      return new CSSStyleValue(value, privateToken);
     }
     if (isShorthandProperty(propLower)) {
-      const val = new CSSStyleValue(value);
+      const val = new CSSStyleValue(value, privateToken);
       (val as any)._associatedProperty = propLower;
       return val;
     }
@@ -414,6 +395,9 @@ export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
   }
 
   getAll(property: string): CSSStyleValue[] {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -421,7 +405,7 @@ export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
-    if (this.element instanceof HTMLElement) {
+    if (this.element && this.element instanceof HTMLElement) {
       const inlineVal = (this.element.attributeStyleMap as any).getAll(property) as CSSStyleValue[];
       if (inlineVal.length > 0 && !opacityProperties.has(propLower)) {
         const first = inlineVal[0];
@@ -467,17 +451,17 @@ export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
       }
     }
     let value = this.style.getPropertyValue(property);
-    if (borderWidthProperties.has(propLower)) {
+    if (this.element && borderWidthProperties.has(propLower)) {
       value = getComputedBorderWidth(this.element, property, this.style);
     }
-    if ((propLower === 'min-width' || propLower === 'min-height') && value === '0px') {
+    if (this.element && (propLower === 'min-width' || propLower === 'min-height') && value === '0px') {
       if (!hasExplicitMinSize(this.element, propLower)) {
         value = 'auto';
       }
     }
     if (!value) return [];
     if (shouldFallbackToCSSStyleValue(property, value)) {
-      return [new CSSStyleValue(value)];
+      return [new CSSStyleValue(value, privateToken)];
     }
     try {
       return CSSStyleValue.parseAll(property, value);
@@ -487,6 +471,9 @@ export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
   }
 
   has(property: string): boolean {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -498,10 +485,16 @@ export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
   }
 
   get size(): number {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
     return this.style.length;
   }
 
   *keys(): IterableIterator<string> {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
     const standardProps: string[] = [];
     const customProps: string[] = [];
     for (let i = 0; i < this.style.length; i++) {
@@ -535,24 +528,40 @@ export class CSSComputedStylePropertyMap extends StylePropertyMapReadOnly {
   }
 
   *values(): IterableIterator<CSSStyleValue[]> {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
     for (const key of this.keys()) {
       yield this.getAll(key);
     }
   }
 
   *entries(): IterableIterator<[string, CSSStyleValue[]]> {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
     for (const key of this.keys()) {
       yield [key, this.getAll(key)];
     }
   }
 
   forEach(
-    callback: (value: CSSStyleValue[], key: string, map: StylePropertyMapReadOnly) => void,
-    thisArg?: any
+    callback: (value: CSSStyleValue[], key: string, map: StylePropertyMapReadOnly) => void
   ): void {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
+    const thisArg = arguments[1];
     for (const [key, val] of this.entries()) {
       callback.call(thisArg, val, key, this);
     }
+  }
+
+  [Symbol.iterator](): IterableIterator<[string, CSSStyleValue[]]> {
+    if (!(this instanceof StylePropertyMapReadOnly)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
+    }
+    return this.entries();
   }
 }
 
@@ -562,14 +571,20 @@ interface CacheEntry {
 }
 
 // Concrete implementation backing Element.attributeStyleMap and CSSStyleRule.styleMap
-export class CSSInlineStylePropertyMap extends StylePropertyMap {
+export class StylePropertyMap extends StylePropertyMapReadOnly {
   private _cache = new Map<string, CacheEntry>();
 
-  constructor(private style: CSSStyleDeclaration) {
-    super();
+  constructor(style: CSSStyleDeclaration, token?: any) {
+    super(null, style, token);
+    if (token !== privateToken) {
+      throw new TypeError('Illegal constructor');
+    }
   }
 
   get(property: string): CSSStyleValue | undefined {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -589,12 +604,11 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
     }
 
     if (!currentValue) return undefined;
-    console.log('DEBUG get:', property, 'currentValue:', currentValue, 'fallback:', shouldFallbackToCSSStyleValue(property, currentValue));
     if (shouldFallbackToCSSStyleValue(property, currentValue)) {
-      return new CSSStyleValue(currentValue);
+      return new CSSStyleValue(currentValue, privateToken);
     }
     if (isShorthandProperty(propLower)) {
-      const val = new CSSStyleValue(currentValue);
+      const val = new CSSStyleValue(currentValue, privateToken);
       (val as any)._associatedProperty = propLower;
       return val;
     }
@@ -607,6 +621,9 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
   }
 
   getAll(property: string): CSSStyleValue[] {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -627,7 +644,7 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
 
     if (!currentValue) return [];
     if (shouldFallbackToCSSStyleValue(property, currentValue)) {
-      return [new CSSStyleValue(currentValue)];
+      return [new CSSStyleValue(currentValue, privateToken)];
     }
     try {
       return CSSStyleValue.parseAll(property, currentValue);
@@ -637,6 +654,9 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
   }
 
   has(property: string): boolean {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -648,37 +668,55 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
   }
 
   get size(): number {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     return this.style.length;
   }
 
   *keys(): IterableIterator<string> {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     for (let i = 0; i < this.style.length; i++) {
       yield this.style[i]!;
     }
   }
 
   *values(): IterableIterator<CSSStyleValue[]> {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     for (const key of this.keys()) {
       yield this.getAll(key);
     }
   }
 
   *entries(): IterableIterator<[string, CSSStyleValue[]]> {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     for (const key of this.keys()) {
       yield [key, this.getAll(key)];
     }
   }
 
   forEach(
-    callback: (value: CSSStyleValue[], key: string, map: StylePropertyMapReadOnly) => void,
-    thisArg?: any
+    callback: (value: CSSStyleValue[], key: string, map: StylePropertyMapReadOnly) => void
   ): void {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
+    const thisArg = arguments[1];
     for (const [key, val] of this.entries()) {
       callback.call(thisArg, val, key, this);
     }
   }
 
   set(property: string, ...values: (CSSStyleValue | string)[]): void {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -699,7 +737,7 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
     try {
       let parsedValues: CSSStyleValue[];
       if (shouldFallbackToCSSStyleValue(property, finalString)) {
-        parsedValues = [new CSSStyleValue(finalString)];
+        parsedValues = [new CSSStyleValue(finalString, privateToken)];
       } else {
         parsedValues = CSSStyleValue.parseAll(property, finalString);
       }
@@ -713,6 +751,9 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
   }
 
   append(property: string, ...values: (CSSStyleValue | string)[]): void {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -751,7 +792,7 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
     } else {
       if (currentValue) {
         if (shouldFallbackToCSSStyleValue(property, currentValue)) {
-          existingValues = [new CSSStyleValue(currentValue)];
+          existingValues = [new CSSStyleValue(currentValue, privateToken)];
         } else {
           try {
             existingValues = CSSStyleValue.parseAll(property, currentValue);
@@ -770,7 +811,7 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
     try {
       let parsedValues: CSSStyleValue[];
       if (shouldFallbackToCSSStyleValue(property, finalString)) {
-        parsedValues = [new CSSStyleValue(finalString)];
+        parsedValues = [new CSSStyleValue(finalString, privateToken)];
       } else {
         parsedValues = CSSStyleValue.parseAll(property, finalString);
       }
@@ -784,6 +825,9 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
   }
 
   delete(property: string): void {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -796,7 +840,13 @@ export class CSSInlineStylePropertyMap extends StylePropertyMap {
   }
 
   clear(): void {
+    if (!(this instanceof StylePropertyMap)) {
+      throw new TypeError("Value of 'this' is not a StylePropertyMap");
+    }
     this.style.cssText = '';
     this._cache.clear();
   }
 }
+
+StylePropertyMapReadOnly.prototype[Symbol.iterator] = StylePropertyMapReadOnly.prototype.entries;
+StylePropertyMap.prototype[Symbol.iterator] = StylePropertyMap.prototype.entries;

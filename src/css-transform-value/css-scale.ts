@@ -21,24 +21,48 @@ export class CSSScale extends CSSTransformComponent {
     }
   }
 
-  get x(): CSSNumberish { return this._x; }
+  get x(): CSSNumberish {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
+    return this._x;
+  }
   set x(val: CSSNumberish) {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
     if (!isNumberValue(val)) {
       throw new TypeError('CSSScale.x must be a number');
     }
     this._x = toNumericValue(val);
   }
 
-  get y(): CSSNumberish { return this._y; }
+  get y(): CSSNumberish {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
+    return this._y;
+  }
   set y(val: CSSNumberish) {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
     if (!isNumberValue(val)) {
       throw new TypeError('CSSScale.y must be a number');
     }
     this._y = toNumericValue(val);
   }
 
-  get z(): CSSNumberish { return this._z; }
+  get z(): CSSNumberish {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
+    return this._z;
+  }
   set z(val: CSSNumberish) {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
     if (!isNumberValue(val)) {
       throw new TypeError('CSSScale.z must be a number');
     }
@@ -46,10 +70,16 @@ export class CSSScale extends CSSTransformComponent {
   }
 
   get is2D(): boolean {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
     return this._is2D;
   }
 
   set is2D(value: boolean) {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
     this._is2D = value;
     if (value) {
       this.z = 1;

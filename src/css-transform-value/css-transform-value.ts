@@ -38,16 +38,25 @@ export class CSSTransformValue extends CSSStyleValue {
   }
 
   get length(): number {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
     return this._components.length;
   }
 
   [index: number]: CSSTransformComponent;
 
   get is2D(): boolean {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
     return this._components.every(comp => comp.is2D);
   }
 
   toMatrix(): DOMMatrix {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
     let matrix = new DOMMatrix();
     for (const comp of this._components) {
       matrix.multiplySelf(comp.toMatrix());
@@ -56,12 +65,46 @@ export class CSSTransformValue extends CSSStyleValue {
   }
 
   *[Symbol.iterator](): Iterator<CSSTransformComponent> {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
     for (const comp of this._components) {
       yield comp;
     }
   }
 
+  entries(): IterableIterator<[number, CSSTransformComponent]> {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
+    return this._components.entries();
+  }
+
+  keys(): IterableIterator<number> {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
+    return this._components.keys();
+  }
+
+  values(): IterableIterator<CSSTransformComponent> {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
+    return this._components.values();
+  }
+
+  forEach(callbackfn: (value: CSSTransformComponent, key: number, parent: CSSTransformValue) => void, thisArg?: any): void {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
+    this._components.forEach((val, index) => callbackfn.call(thisArg, val, index, this));
+  }
+
   toString(): string {
+    if (!(this instanceof CSSTransformValue)) {
+      throw new TypeError("Value of 'this' is not a CSSTransformValue");
+    }
     return this._components.map(comp => comp.toString()).join(' ');
   }
 }

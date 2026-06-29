@@ -13,8 +13,16 @@ export class CSSPerspective extends CSSTransformComponent {
     this.length = length;
   }
 
-  get length(): CSSPerspectiveValue { return this._length; }
+  get length(): CSSPerspectiveValue {
+    if (!(this instanceof CSSPerspective)) {
+      throw new TypeError("Value of 'this' is not a CSSPerspective");
+    }
+    return this._length;
+  }
   set length(val: CSSPerspectiveValue | string) {
+    if (!(this instanceof CSSPerspective)) {
+      throw new TypeError("Value of 'this' is not a CSSPerspective");
+    }
     let resolvedVal: CSSPerspectiveValue;
     if (typeof val === 'string') {
       if (val.toLowerCase() === 'none') {

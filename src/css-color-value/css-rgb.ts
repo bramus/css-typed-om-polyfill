@@ -22,23 +22,55 @@ export class CSSRGB extends CSSColorValue {
     this.alpha = alpha;
   }
 
-  get r(): CSSColorRGBComp { return this._r; }
+  get r(): CSSColorRGBComp {
+    if (!(this instanceof CSSRGB)) {
+      throw new TypeError("Value of 'this' is not a CSSRGB");
+    }
+    return this._r;
+  }
   set r(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSRGB)) {
+      throw new TypeError("Value of 'this' is not a CSSRGB");
+    }
     this._r = toRGBComponent(val, 'CSSRGB.r');
   }
 
-  get g(): CSSColorRGBComp { return this._g; }
+  get g(): CSSColorRGBComp {
+    if (!(this instanceof CSSRGB)) {
+      throw new TypeError("Value of 'this' is not a CSSRGB");
+    }
+    return this._g;
+  }
   set g(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSRGB)) {
+      throw new TypeError("Value of 'this' is not a CSSRGB");
+    }
     this._g = toRGBComponent(val, 'CSSRGB.g');
   }
 
-  get b(): CSSColorRGBComp { return this._b; }
+  get b(): CSSColorRGBComp {
+    if (!(this instanceof CSSRGB)) {
+      throw new TypeError("Value of 'this' is not a CSSRGB");
+    }
+    return this._b;
+  }
   set b(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSRGB)) {
+      throw new TypeError("Value of 'this' is not a CSSRGB");
+    }
     this._b = toRGBComponent(val, 'CSSRGB.b');
   }
 
-  get alpha(): CSSColorPercent { return this._alpha; }
+  get alpha(): CSSColorPercent {
+    if (!(this instanceof CSSRGB)) {
+      throw new TypeError("Value of 'this' is not a CSSRGB");
+    }
+    return this._alpha;
+  }
   set alpha(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSRGB)) {
+      throw new TypeError("Value of 'this' is not a CSSRGB");
+    }
     this._alpha = toPercentComponent(val, 'CSSRGB.alpha');
   }
 

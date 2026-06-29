@@ -22,23 +22,55 @@ export class CSSHSL extends CSSColorValue {
     this.alpha = alpha;
   }
 
-  get h(): CSSColorAngle { return this._h; }
+  get h(): CSSColorAngle {
+    if (!(this instanceof CSSHSL)) {
+      throw new TypeError("Value of 'this' is not a CSSHSL");
+    }
+    return this._h;
+  }
   set h(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSHSL)) {
+      throw new TypeError("Value of 'this' is not a CSSHSL");
+    }
     this._h = toHSLHueComponent(val);
   }
 
-  get s(): CSSColorPercent { return this._s; }
+  get s(): CSSColorPercent {
+    if (!(this instanceof CSSHSL)) {
+      throw new TypeError("Value of 'this' is not a CSSHSL");
+    }
+    return this._s;
+  }
   set s(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSHSL)) {
+      throw new TypeError("Value of 'this' is not a CSSHSL");
+    }
     this._s = toPercentComponent(val, 'CSSHSL.s');
   }
 
-  get l(): CSSColorPercent { return this._l; }
+  get l(): CSSColorPercent {
+    if (!(this instanceof CSSHSL)) {
+      throw new TypeError("Value of 'this' is not a CSSHSL");
+    }
+    return this._l;
+  }
   set l(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSHSL)) {
+      throw new TypeError("Value of 'this' is not a CSSHSL");
+    }
     this._l = toPercentComponent(val, 'CSSHSL.l');
   }
 
-  get alpha(): CSSColorPercent { return this._alpha; }
+  get alpha(): CSSColorPercent {
+    if (!(this instanceof CSSHSL)) {
+      throw new TypeError("Value of 'this' is not a CSSHSL");
+    }
+    return this._alpha;
+  }
   set alpha(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSHSL)) {
+      throw new TypeError("Value of 'this' is not a CSSHSL");
+    }
     this._alpha = toPercentComponent(val, 'CSSHSL.alpha');
   }
 

@@ -22,23 +22,55 @@ export class CSSLCH extends CSSColorValue {
     this.alpha = alpha;
   }
 
-  get l(): CSSColorPercent { return this._l; }
+  get l(): CSSColorPercent {
+    if (!(this instanceof CSSLCH)) {
+      throw new TypeError("Value of 'this' is not a CSSLCH");
+    }
+    return this._l;
+  }
   set l(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSLCH)) {
+      throw new TypeError("Value of 'this' is not a CSSLCH");
+    }
     this._l = toPercentComponent(val, 'CSSLCH.l');
   }
 
-  get c(): CSSColorPercent { return this._c; }
+  get c(): CSSColorPercent {
+    if (!(this instanceof CSSLCH)) {
+      throw new TypeError("Value of 'this' is not a CSSLCH");
+    }
+    return this._c;
+  }
   set c(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSLCH)) {
+      throw new TypeError("Value of 'this' is not a CSSLCH");
+    }
     this._c = toPercentComponent(val, 'CSSLCH.c');
   }
 
-  get h(): CSSColorAngle { return this._h; }
+  get h(): CSSColorAngle {
+    if (!(this instanceof CSSLCH)) {
+      throw new TypeError("Value of 'this' is not a CSSLCH");
+    }
+    return this._h;
+  }
   set h(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSLCH)) {
+      throw new TypeError("Value of 'this' is not a CSSLCH");
+    }
     this._h = toLCHHueComponent(val);
   }
 
-  get alpha(): CSSColorPercent { return this._alpha; }
+  get alpha(): CSSColorPercent {
+    if (!(this instanceof CSSLCH)) {
+      throw new TypeError("Value of 'this' is not a CSSLCH");
+    }
+    return this._alpha;
+  }
   set alpha(val: CSSNumberish | CSSKeywordValue | string) {
+    if (!(this instanceof CSSLCH)) {
+      throw new TypeError("Value of 'this' is not a CSSLCH");
+    }
     this._alpha = toPercentComponent(val, 'CSSLCH.alpha');
   }
 

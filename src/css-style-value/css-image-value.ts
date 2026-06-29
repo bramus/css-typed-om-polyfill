@@ -1,8 +1,11 @@
 import { CSSStyleValue } from './css-style-value';
 
 export class CSSImageValue extends CSSStyleValue {
-  constructor(cssText?: string) {
-    super(cssText);
+  constructor(cssText?: string, token?: any) {
+    super(cssText, token);
+    if (token !== Symbol.for('css-typed-om-polyfill-private-token') && this.constructor === CSSImageValue) {
+      throw new TypeError('Illegal constructor');
+    }
   }
 
   get [Symbol.toStringTag]() {
