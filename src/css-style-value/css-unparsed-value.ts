@@ -22,7 +22,7 @@ export class CSSUnparsedValue extends CSSStyleValue {
         if (typeof prop === 'string') {
           const index = Number(prop);
           if (Number.isInteger(index) && index >= 0) {
-            if (index >= target._segments.length) {
+            if (index > target._segments.length) {
               throw new RangeError('Index out of range');
             }
             target._segments[index] = value;

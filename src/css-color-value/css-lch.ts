@@ -1,13 +1,13 @@
-import { CSSColorValue, toColorComponent, type CSSColorPercent, type CSSColorAngle } from './css-color-value';
+import { CSSColorValue, toPercentComponent, toLCHHueComponent, type CSSColorPercent, type CSSColorAngle } from './css-color-value';
 import { type CSSNumberish } from '../css-numeric-value';
 import { CSSKeywordValue } from '../css-style-value';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#csslch
 export class CSSLCH extends CSSColorValue {
-  public l: CSSColorPercent;
-  public c: CSSColorPercent;
-  public h: CSSColorAngle;
-  public alpha: CSSColorPercent;
+  private _l!: CSSColorPercent;
+  private _c!: CSSColorPercent;
+  private _h!: CSSColorAngle;
+  private _alpha!: CSSColorPercent;
 
   constructor(
     l: CSSNumberish | CSSKeywordValue | string,
@@ -16,10 +16,30 @@ export class CSSLCH extends CSSColorValue {
     alpha: CSSNumberish | CSSKeywordValue | string = 1
   ) {
     super();
-    this.l = toColorComponent(l);
-    this.c = toColorComponent(c);
-    this.h = toColorComponent(h);
-    this.alpha = toColorComponent(alpha);
+    this.l = l;
+    this.c = c;
+    this.h = h;
+    this.alpha = alpha;
+  }
+
+  get l(): CSSColorPercent { return this._l; }
+  set l(val: CSSNumberish | CSSKeywordValue | string) {
+    this._l = toPercentComponent(val, 'CSSLCH.l');
+  }
+
+  get c(): CSSColorPercent { return this._c; }
+  set c(val: CSSNumberish | CSSKeywordValue | string) {
+    this._c = toPercentComponent(val, 'CSSLCH.c');
+  }
+
+  get h(): CSSColorAngle { return this._h; }
+  set h(val: CSSNumberish | CSSKeywordValue | string) {
+    this._h = toLCHHueComponent(val);
+  }
+
+  get alpha(): CSSColorPercent { return this._alpha; }
+  set alpha(val: CSSNumberish | CSSKeywordValue | string) {
+    this._alpha = toPercentComponent(val, 'CSSLCH.alpha');
   }
 
   toString(): string {

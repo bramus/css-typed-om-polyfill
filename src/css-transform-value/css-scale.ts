@@ -16,7 +16,7 @@ export class CSSScale extends CSSTransformComponent {
       this.z = z;
       this._is2D = false;
     } else {
-      this._z = 1;
+      this.z = 1;
       this._is2D = true;
     }
   }
@@ -52,7 +52,7 @@ export class CSSScale extends CSSTransformComponent {
   set is2D(value: boolean) {
     this._is2D = value;
     if (value) {
-      this._z = 1;
+      this.z = 1;
     }
   }
 

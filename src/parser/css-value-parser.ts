@@ -354,6 +354,13 @@ function parseTransformComponent(name: string, argTokens: Token[]): CSSTransform
   }
 }
 
+const systemColors = new Set([
+  'canvas', 'canvastext', 'linktext', 'visitedtext', 'activetext',
+  'buttonface', 'buttontext', 'buttonborder', 'field', 'fieldtext',
+  'highlight', 'highlighttext', 'selecteditem', 'selecteditemtext',
+  'mark', 'marktext', 'graytext',
+]);
+
 function parseColorValue(tokens: Token[], cssText: string): CSSColorValue | CSSStyleValue {
   // 1. Hex color
   if (cssText.startsWith('#')) {
@@ -370,18 +377,21 @@ function parseColorValue(tokens: Token[], cssText: string): CSSColorValue | CSSS
       b = parseInt(hex.slice(4, 6), 16);
       if (hex.length === 8) a = parseInt(hex.slice(6, 8), 16) / 255;
     } else {
-      throw new SyntaxError('Invalid hex color');
+      throw new DOMException('Invalid hex color', 'SyntaxError');
     }
-    return new CSSRGB(new CSSUnitValue(r, 'number'), new CSSUnitValue(g, 'number'), new CSSUnitValue(b, 'number'), new CSSUnitValue(a, 'number'));
+    return new CSSRGB(new CSSUnitValue(r, 'number'), new CSSUnitValue(g, 'number'), new CSSUnitValue(b, 'number'), a);
   }
 
-  // 2. Named color
+  // 2. Named color / System color
   if (tokens.length === 1 && tokens[0] instanceof IdentToken) {
     const name = tokens[0].value.toLowerCase();
     const rgb = colorNames[name];
     if (rgb) {
       const alpha = typeof rgb[3] === 'number' ? rgb[3] : 1;
-      return new CSSRGB(new CSSUnitValue(rgb[0], 'number'), new CSSUnitValue(rgb[1], 'number'), new CSSUnitValue(rgb[2], 'number'), new CSSUnitValue(alpha, 'number'));
+      return new CSSRGB(new CSSUnitValue(rgb[0], 'number'), new CSSUnitValue(rgb[1], 'number'), new CSSUnitValue(rgb[2], 'number'), alpha);
+    }
+    if (systemColors.has(name)) {
+      return new CSSKeywordValue(name);
     }
   }
 
@@ -396,41 +406,66 @@ function parseColorValue(tokens: Token[], cssText: string): CSSColorValue | CSSS
     }
 
     const reifyArg = (t: Token | undefined): CSSNumericValue | CSSKeywordValue => {
-      if (!t) throw new SyntaxError('Missing color argument');
+      if (!t) throw new DOMException('Missing color argument', 'SyntaxError');
       if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'number');
       if (t instanceof PercentageToken) return new CSSUnitValue(t.value, 'percent');
       if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
       if (t instanceof IdentToken) return new CSSKeywordValue(t.value);
-      throw new SyntaxError('Invalid color argument');
+      throw new DOMException('Invalid color argument', 'SyntaxError');
+    };
+
+    const reifyPercent = (t: Token | undefined, defaultVal?: number): any => {
+      if (!t) {
+        if (defaultVal !== undefined) return defaultVal;
+        throw new DOMException('Missing argument', 'SyntaxError');
+      }
+      if (t instanceof NumberToken) return t.value;
+      return reifyArg(t);
+    };
+
+    const reifyHSLHue = (t: Token | undefined): any => {
+      if (!t) throw new DOMException('Missing hue', 'SyntaxError');
+      if (t instanceof NumberToken) return t.value;
+      return reifyArg(t);
+    };
+
+    const reifyHWBHue = (t: Token | undefined): CSSNumericValue => {
+      if (!t) throw new DOMException('Missing hue', 'SyntaxError');
+      if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'deg');
+      const r = reifyArg(t);
+      if (!(r instanceof CSSNumericValue)) {
+        throw new DOMException('Invalid hue', 'SyntaxError');
+      }
+      return r;
     };
 
     switch (name) {
       case 'rgb':
       case 'rgba':
-        return new CSSRGB(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+        return new CSSRGB(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), reifyPercent(args[3], 1));
       case 'hsl':
       case 'hsla':
-        return new CSSHSL(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+        return new CSSHSL(reifyHSLHue(args[0]), reifyPercent(args[1]), reifyPercent(args[2]), reifyPercent(args[3], 1));
       case 'hwb':
-        return new CSSHWB(reifyArg(args[0]) as CSSNumericValue, reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+        return new CSSHWB(reifyHWBHue(args[0]), reifyPercent(args[1]), reifyPercent(args[2]), reifyPercent(args[3], 1));
       case 'lab':
-        return new CSSLab(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+        return new CSSLab(reifyPercent(args[0]), reifyArg(args[1]), reifyArg(args[2]), reifyPercent(args[3], 1));
       case 'lch':
-        return new CSSLCH(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+        return new CSSLCH(reifyPercent(args[0]), reifyPercent(args[1]), reifyHSLHue(args[2]), reifyPercent(args[3], 1));
       case 'oklab':
-        return new CSSOKLab(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+        return new CSSOKLab(reifyPercent(args[0]), reifyArg(args[1]), reifyArg(args[2]), reifyPercent(args[3], 1));
       case 'oklch':
-        return new CSSOKLCH(reifyArg(args[0]), reifyArg(args[1]), reifyArg(args[2]), args[3] ? reifyArg(args[3]) : new CSSUnitValue(1, 'number'));
+        return new CSSOKLCH(reifyPercent(args[0]), reifyPercent(args[1]), reifyHSLHue(args[2]), reifyPercent(args[3], 1));
       case 'color': {
         const colorSpace = args[0] as IdentToken;
         const channels = args.slice(1, 4).map(reifyArg);
-        const alpha = args[4] ? reifyArg(args[4]) : new CSSUnitValue(1, 'number');
+        const alpha = reifyPercent(args[4], 1);
         return new CSSColor(new CSSKeywordValue(colorSpace.value), channels, alpha);
       }
     }
   }
 
-  throw new SyntaxError('Invalid color value');
+  throw new DOMException('Invalid color value', 'SyntaxError');
 }
 
 function parseUnparsedValue(tokens: Token[]): CSSUnparsedValue {

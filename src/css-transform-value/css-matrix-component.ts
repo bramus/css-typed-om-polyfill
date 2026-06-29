@@ -9,13 +9,27 @@ export class CSSMatrixComponent extends CSSTransformComponent {
   public matrix: DOMMatrix;
   public is2D: boolean;
 
-  constructor(matrix: DOMMatrixReadOnly, options: CSSMatrixComponentOptions = {}) {
+  constructor(matrix: DOMMatrixReadOnly, options?: CSSMatrixComponentOptions) {
     super();
     this.matrix = DOMMatrix.fromMatrix(matrix);
-    this.is2D = typeof options.is2D === 'boolean' ? options.is2D : matrix.is2D;
+    let is2D: boolean | undefined = undefined;
+    if (options && typeof options === 'object') {
+      is2D = options.is2D;
+    }
+    this.is2D = typeof is2D === 'boolean' ? is2D : matrix.is2D;
   }
 
   toMatrix(): DOMMatrix {
+    if (this.is2D) {
+      return new DOMMatrix([
+        this.matrix.a,
+        this.matrix.b,
+        this.matrix.c,
+        this.matrix.d,
+        this.matrix.e,
+        this.matrix.f
+      ]);
+    }
     return DOMMatrix.fromMatrix(this.matrix);
   }
 

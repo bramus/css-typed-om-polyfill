@@ -2,11 +2,22 @@ import { CSSStyleValue } from './css-style-value';
 
 // https://drafts.css-houdini.org/css-typed-om-1/#csskeywordvalue
 export class CSSKeywordValue extends CSSStyleValue {
-  constructor(public value: string) {
+  private _value!: string;
+
+  constructor(value: string) {
     super();
-    if (typeof value !== 'string' || value === '') {
+    this.value = value;
+  }
+
+  get value(): string {
+    return this._value;
+  }
+
+  set value(val: string) {
+    if (typeof val !== 'string' || val === '') {
       throw new TypeError('CSSKeywordValue value must be a non-empty string');
     }
+    this._value = val;
   }
 
   toString(): string {

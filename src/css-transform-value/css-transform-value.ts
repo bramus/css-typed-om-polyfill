@@ -25,7 +25,7 @@ export class CSSTransformValue extends CSSStyleValue {
         if (typeof prop === 'string') {
           const index = Number(prop);
           if (Number.isInteger(index) && index >= 0) {
-            if (index >= target._components.length) {
+            if (index > target._components.length) {
               throw new RangeError('Index out of range');
             }
             target._components[index] = value;

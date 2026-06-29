@@ -181,13 +181,13 @@ describe('CSSTransformValue and Components', () => {
 
     it('CSSUnparsedValue bounds check', () => {
       const uv = new CSSUnparsedValue(['foo', 'bar']);
-      expect(() => uv[2] = 'baz').toThrow(RangeError);
+      expect(() => uv[3] = 'baz').toThrow(RangeError);
     });
 
     it('CSSTransformValue bounds check', () => {
       const translate = new CSSTranslate(new CSSUnitValue(10, 'px'), new CSSUnitValue(20, 'px'));
       const transform = new CSSTransformValue([translate]);
-      expect(() => transform[1] = translate).toThrow(RangeError);
+      expect(() => transform[2] = translate).toThrow(RangeError);
     });
   });
 });

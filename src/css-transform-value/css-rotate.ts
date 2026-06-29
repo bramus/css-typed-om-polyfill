@@ -20,9 +20,9 @@ export class CSSRotate extends CSSTransformComponent {
     super();
     if (typeof b === 'undefined') {
       this.angle = a as CSSNumericValue;
-      this._x = 0;
-      this._y = 0;
-      this._z = 1;
+      this.x = 0;
+      this.y = 0;
+      this.z = 1;
       this._is2D = true;
     } else {
       this.x = a;
@@ -72,9 +72,9 @@ export class CSSRotate extends CSSTransformComponent {
   set is2D(value: boolean) {
     this._is2D = value;
     if (value) {
-      this._x = 0;
-      this._y = 0;
-      this._z = 1;
+      this.x = 0;
+      this.y = 0;
+      this.z = 1;
     }
   }
 

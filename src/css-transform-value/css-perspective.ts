@@ -14,19 +14,30 @@ export class CSSPerspective extends CSSTransformComponent {
   }
 
   get length(): CSSPerspectiveValue { return this._length; }
-  set length(val: CSSPerspectiveValue) {
-    if (val instanceof CSSKeywordValue) {
-      if (val.value !== 'none') {
+  set length(val: CSSPerspectiveValue | string) {
+    let resolvedVal: CSSPerspectiveValue;
+    if (typeof val === 'string') {
+      if (val.toLowerCase() === 'none') {
+        resolvedVal = new CSSKeywordValue('none');
+      } else {
+        throw new TypeError('CSSPerspective length must be a length or "none"');
+      }
+    } else {
+      resolvedVal = val;
+    }
+
+    if (resolvedVal instanceof CSSKeywordValue) {
+      if (resolvedVal.value !== 'none') {
         throw new TypeError("CSSPerspective length keyword must be 'none'");
       }
-    } else if (val instanceof CSSNumericValue) {
-      if (!matchesLength(val.type())) {
+    } else if (resolvedVal instanceof CSSNumericValue) {
+      if (!matchesLength(resolvedVal.type())) {
         throw new TypeError('CSSPerspective length must be a length');
       }
     } else {
       throw new TypeError('CSSPerspective length must be a length or "none"');
     }
-    this._length = val;
+    this._length = resolvedVal;
   }
 
   get is2D(): boolean {
