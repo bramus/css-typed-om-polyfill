@@ -18,7 +18,15 @@ try {
 
   if (data && Array.isArray(data.results)) {
     console.log(`Processing ${data.results.length} results...`);
-    for (const result of data.results) {
+    
+    // Sort results by test path to ensure deterministic output order
+    const sortedResults = [...data.results].sort((a, b) => {
+      const pathA = a.test || '';
+      const pathB = b.test || '';
+      return pathA.localeCompare(pathB);
+    });
+
+    for (const result of sortedResults) {
       // Parent test
       const testPath = result.test;
       const status = result.status;
@@ -26,7 +34,13 @@ try {
 
       // Subtests
       if (Array.isArray(result.subtests)) {
-        for (const subtest of result.subtests) {
+        // Sort subtests by name to ensure deterministic output order
+        const sortedSubtests = [...result.subtests].sort((a, b) => {
+          const nameA = a.name || '';
+          const nameB = b.name || '';
+          return nameA.localeCompare(nameB);
+        });
+        for (const subtest of sortedSubtests) {
           const subtestName = subtest.name;
           const subtestStatus = subtest.status;
           output += `- ${subtestStatus}\t${subtestName}\n`;
