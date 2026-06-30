@@ -111,6 +111,8 @@ const shorthandToLonghands: Record<string, string[]> = {
     'animation-delay', 'animation-iteration-count', 'animation-direction', 
     'animation-fill-mode', 'animation-play-state'
   ],
+  // https://drafts.csswg.org/scroll-animations-1/#animation-range
+  'animation-range': ['animation-range-start', 'animation-range-end'],
   'background': [
     'background-image', 'background-position', 'background-size', 
     'background-repeat', 'background-origin', 'background-clip', 
@@ -148,6 +150,8 @@ const shorthandToLonghands: Record<string, string[]> = {
   'column-rule': ['column-rule-width', 'column-rule-style', 'column-rule-color'],
   'columns': ['column-width', 'column-count'],
   'cue': ['cue-before', 'cue-after'],
+  // https://drafts.csswg.org/animation-triggers-1/#event-trigger-shorthand
+  'event-trigger': ['event-trigger-name', 'event-trigger-source'],
   'flex': ['flex-grow', 'flex-shrink', 'flex-basis'],
   'flex-flow': ['flex-direction', 'flex-wrap'],
   'font': ['font-style', 'font-variant', 'font-weight', 'font-stretch', 'font-size', 'line-height', 'font-family'],
@@ -180,6 +184,8 @@ const shorthandToLonghands: Record<string, string[]> = {
   'place-content': ['align-content', 'justify-content'],
   'place-items': ['align-items', 'justify-items'],
   'place-self': ['align-self', 'justify-self'],
+  // https://drafts.csswg.org/css-anchor-position-1/#position-try-prop
+  'position-try': ['position-try-order', 'position-try-fallbacks'],
   'rest': ['rest-before', 'rest-after'],
   'scroll-margin': ['scroll-margin-top', 'scroll-margin-right', 'scroll-margin-bottom', 'scroll-margin-left'],
   'scroll-margin-block': ['scroll-margin-block-start', 'scroll-margin-block-end'],
@@ -190,9 +196,15 @@ const shorthandToLonghands: Record<string, string[]> = {
   'scroll-snap-margin': ['scroll-snap-margin-top', 'scroll-snap-margin-right', 'scroll-snap-margin-bottom', 'scroll-snap-margin-left'],
   'scroll-snap-margin-block': ['scroll-snap-margin-block-start', 'scroll-snap-margin-block-end'],
   'scroll-snap-margin-inline': ['scroll-snap-margin-inline-start', 'scroll-snap-margin-inline-end'],
+  // https://drafts.csswg.org/scroll-animations-1/#scroll-timeline-shorthand
+  'scroll-timeline': ['scroll-timeline-name', 'scroll-timeline-axis'],
   'text-decoration': ['text-decoration-line', 'text-decoration-style', 'text-decoration-color'],
   'text-emphasis': ['text-emphasis-style', 'text-emphasis-color'],
+  // https://drafts.csswg.org/animation-triggers-1/#timeline-trigger-shorthand
+  'timeline-trigger': ['timeline-trigger-name', 'timeline-trigger-source', 'timeline-trigger-activation-range', 'timeline-trigger-active-range'],
   'transition': ['transition-property', 'transition-duration', 'transition-timing-function', 'transition-delay'],
+  // https://drafts.csswg.org/scroll-animations-1/#view-timeline-shorthand
+  'view-timeline': ['view-timeline-name', 'view-timeline-axis'],
 };
 
 const longhandToShorthands: Record<string, string[]> = {};
