@@ -15,7 +15,7 @@ This project is fully tested using the official [Web Platform Tests (WPT)](https
 - **Automatic Polyfilling**: Automatically patches `window.CSS`, `Element.prototype.computedStyleMap`, `HTMLElement.prototype.attributeStyleMap`, and other relevant interfaces if running in a browser.
 - **Typed Values**: Supports `CSSUnitValue`, `CSSMathValue`, `CSSTransformValue`, `CSSColorValue`, and more.
 - **Fully Typed**: Written in TypeScript with standard types exported.
-- **ESM & CommonJS Support**: Built for both modern and legacy environments.
+- **ESM & IIFE Support**: Built for modern environments and direct browser script usage.
 - **Fully WPT Tested**: This project is fully tested using the official [Web Platform Tests (WPT)](https://github.com/web-platform-tests/wpt).
 
 ## Installation
@@ -68,7 +68,7 @@ npm install
 
 ### Building
 
-To build the project (ESM, CommonJS, IIFE, and Types):
+To build the project (ESM, IIFE, and Types):
 
 ```bash
 npm run build
