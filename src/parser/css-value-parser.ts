@@ -307,74 +307,59 @@ function parseTransformValue(tokens: Token[]): CSSTransformValue {
   return new CSSTransformValue(components);
 }
 
-const reifyLengthPercent = (tokens: Token[] | undefined): CSSNumericValue => {
+const reifyGeneric = (
+  tokens: Token[] | undefined,
+  fastPath: (t: Token) => CSSNumericValue | null
+): CSSNumericValue => {
   if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
   if (tokens.length === 1) {
-    const t = tokens[0]!;
+    const res = fastPath(tokens[0]!);
+    if (res) return res;
+  }
+  const cssText = tokensToString(tokens);
+  try {
+    return parseCSSNumericValue(cssText);
+  } catch (e) {
+    throw new SyntaxError('Invalid transform argument');
+  }
+};
+
+const reifyLengthPercent = (tokens: Token[] | undefined): CSSNumericValue =>
+  reifyGeneric(tokens, (t) => {
     if (t instanceof NumberToken) {
       if (t.value === 0) return new CSSUnitValue(0, 'px');
       throw new TypeError('Expected length or percentage, got number');
     }
     if (t instanceof PercentageToken) return new CSSUnitValue(t.value, 'percent');
     if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
-  }
-  const cssText = tokensToString(tokens);
-  try {
-    return parseCSSNumericValue(cssText);
-  } catch (e) {
-    throw new SyntaxError('Invalid transform argument');
-  }
-};
+    return null;
+  });
 
-const reifyLength = (tokens: Token[] | undefined): CSSNumericValue => {
-  if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
-  if (tokens.length === 1) {
-    const t = tokens[0]!;
+const reifyLength = (tokens: Token[] | undefined): CSSNumericValue =>
+  reifyGeneric(tokens, (t) => {
     if (t instanceof NumberToken) {
       if (t.value === 0) return new CSSUnitValue(0, 'px');
       throw new TypeError('Expected length, got number');
     }
     if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
-  }
-  const cssText = tokensToString(tokens);
-  try {
-    return parseCSSNumericValue(cssText);
-  } catch (e) {
-    throw new SyntaxError('Invalid transform argument');
-  }
-};
+    return null;
+  });
 
-const reifyAngle = (tokens: Token[] | undefined): CSSNumericValue => {
-  if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
-  if (tokens.length === 1) {
-    const t = tokens[0]!;
+const reifyAngle = (tokens: Token[] | undefined): CSSNumericValue =>
+  reifyGeneric(tokens, (t) => {
     if (t instanceof NumberToken) {
       if (t.value === 0) return new CSSUnitValue(0, 'deg');
       throw new TypeError('Expected angle, got number');
     }
     if (t instanceof DimensionToken) return new CSSUnitValue(t.value, t.unit);
-  }
-  const cssText = tokensToString(tokens);
-  try {
-    return parseCSSNumericValue(cssText);
-  } catch (e) {
-    throw new SyntaxError('Invalid transform argument');
-  }
-};
+    return null;
+  });
 
-const reifyNumber = (tokens: Token[] | undefined): CSSNumericValue => {
-  if (!tokens || tokens.length === 0) throw new SyntaxError('Missing transform argument');
-  if (tokens.length === 1) {
-    const t = tokens[0]!;
+const reifyNumber = (tokens: Token[] | undefined): CSSNumericValue =>
+  reifyGeneric(tokens, (t) => {
     if (t instanceof NumberToken) return new CSSUnitValue(t.value, 'number');
-  }
-  const cssText = tokensToString(tokens);
-  try {
-    return parseCSSNumericValue(cssText);
-  } catch (e) {
-    throw new SyntaxError('Invalid transform argument');
-  }
-};
+    return null;
+  });
 
 function parseTransformComponent(name: string, argTokens: Token[]): CSSTransformComponent {
   // Split by top-level commas
