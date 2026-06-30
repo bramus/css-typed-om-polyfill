@@ -1,6 +1,6 @@
 # CSS Typed OM Polyfill
 
-This polyfill brings the [CSS Typed OM Level 1 Specification](https://www.w3.org/TR/css-typed-om-1/) to browsers that do not yet support it, allowing you to interact with CSS values as typed JavaScript objects rather than strings.
+This polyfill brings the [CSS Typed OM Level 1 Specification](https://drafts.css-houdini.org/css-typed-om-1/) to browsers that do not yet support it, allowing you to interact with CSS values as typed JavaScript objects rather than strings.
 
 This project is fully tested using the official [Web Platform Tests (WPT)](https://github.com/web-platform-tests/wpt).
 

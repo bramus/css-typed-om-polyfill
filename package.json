@@ -1,7 +1,7 @@
 {
   "name": "css-typed-om-polyfill",
   "version": "1.0.0",
-  "description": "This project aims to provide a complete TypeScript polyfill for the [CSS Typed OM Level 1 Specification](https://www.w3.org/TR/css-typed-om-1/).",
+  "description": "This project aims to provide a complete TypeScript polyfill for the [CSS Typed OM Level 1 Specification](https://drafts.css-houdini.org/css-typed-om-1/).",
   "main": "build/index.cjs",
   "module": "build/index.js",
   "types": "build/index.d.ts",
