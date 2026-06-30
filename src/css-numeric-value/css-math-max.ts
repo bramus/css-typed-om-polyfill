@@ -1,17 +1,13 @@
-import { CSSMathValue } from './css-math-value';
+import { CSSMathValue, checkAndCreateValues } from './css-math-value';
 import { CSSNumericArray } from './css-numeric-array';
-import { type CSSNumberish, type CSSNumericType, toNumericValue, addTypes } from './css-numeric-value';
+import { type CSSNumberish, type CSSNumericType, addTypes } from './css-numeric-value';
 
 export class CSSMathMax extends CSSMathValue {
   private _values!: CSSNumericArray;
 
   constructor(...args: CSSNumberish[]) {
     super();
-    const values = args.map(toNumericValue);
-    if (values.length === 0) {
-      throw new DOMException('CSSMathMax requires at least one argument', 'SyntaxError');
-    }
-    this._values = CSSNumericArray.create(values);
+    this._values = checkAndCreateValues('CSSMathMax', args);
     this.type();
   }
 

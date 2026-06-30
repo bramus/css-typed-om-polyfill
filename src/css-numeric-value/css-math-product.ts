@@ -1,6 +1,6 @@
-import { CSSMathValue } from './css-math-value';
+import { CSSMathValue, checkAndCreateValues } from './css-math-value';
 import { CSSNumericArray } from './css-numeric-array';
-import { CSSNumericValue, type CSSNumberish, type CSSNumericType, toNumericValue, createEmptyType, cleanType, multiplyTypes } from './css-numeric-value';
+import { CSSNumericValue, type CSSNumberish, type CSSNumericType, createEmptyType, multiplyTypes } from './css-numeric-value';
 import { toCanonical, compareTerms } from './serialization-helpers';
 import { CSSMathInvert } from './css-math-invert';
 
@@ -12,11 +12,7 @@ export class CSSMathProduct extends CSSMathValue {
 
   constructor(...args: CSSNumberish[]) {
     super();
-    const values = args.map(toNumericValue);
-    if (values.length === 0) {
-      throw new DOMException('CSSMathProduct requires at least one argument', 'SyntaxError');
-    }
-    this._values = CSSNumericArray.create(values);
+    this._values = checkAndCreateValues('CSSMathProduct', args);
     this.type();
   }
 

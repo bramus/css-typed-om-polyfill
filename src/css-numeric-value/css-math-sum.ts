@@ -1,6 +1,6 @@
-import { CSSMathValue } from './css-math-value';
+import { CSSMathValue, checkAndCreateValues } from './css-math-value';
 import { CSSNumericArray } from './css-numeric-array';
-import { type CSSNumberish, type CSSNumericType, toNumericValue, addTypes } from './css-numeric-value';
+import { type CSSNumberish, type CSSNumericType, addTypes } from './css-numeric-value';
 
 import { toCanonical, compareTerms } from './serialization-helpers';
 
@@ -11,11 +11,7 @@ export class CSSMathSum extends CSSMathValue {
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssmathsum-cssmathsum
   constructor(...args: CSSNumberish[]) {
     super();
-    const values = args.map(toNumericValue);
-    if (values.length === 0) {
-      throw new DOMException('CSSMathSum requires at least one argument', 'SyntaxError');
-    }
-    this._values = CSSNumericArray.create(values);
+    this._values = checkAndCreateValues('CSSMathSum', args);
     this.type();
   }
 

@@ -30,6 +30,12 @@ function shouldWrapInCalc(property: string, val: CSSUnitValue): boolean {
   return false;
 }
 
+const LENGTH_UNITS = new Set(['cap', 'ch', 'em', 'ex', 'ic', 'lh', 'rcap', 'rch', 'rem', 'rex', 'ric', 'rlh', 'vh', 'vmax', 'vmin', 'vw', 'cqw', 'cqh', 'cqi', 'cqb', 'cqmin', 'cqmax', 'px', 'cm', 'mm', 'in', 'pt', 'pc', 'Q']);
+const ANGLE_UNITS = new Set(['deg', 'grad', 'rad', 'turn']);
+const TIME_UNITS = new Set(['s', 'ms']);
+const FREQUENCY_UNITS = new Set(['Hz', 'kHz']);
+const RESOLUTION_UNITS = new Set(['dpi', 'dpcm', 'dppx']);
+
 function validateValuesForProperty(property: string, values: (CSSStyleValue | string)[]): string {
   const propLower = property.toLowerCase();
   const isList = listValuedProperties.has(propLower);
@@ -54,20 +60,11 @@ function validateValuesForProperty(property: string, values: (CSSStyleValue | st
     if (unit === 'number') return new CSSUnitValue(1, 'number');
     if (unit === 'percent') return new CSSUnitValue(1, 'percent');
 
-    const lengthUnits = new Set(['cap', 'ch', 'em', 'ex', 'ic', 'lh', 'rcap', 'rch', 'rem', 'rex', 'ric', 'rlh', 'vh', 'vmax', 'vmin', 'vw', 'cqw', 'cqh', 'cqi', 'cqb', 'cqmin', 'cqmax', 'px', 'cm', 'mm', 'in', 'pt', 'pc', 'Q']);
-    if (lengthUnits.has(unit)) return new CSSUnitValue(1, 'px');
-
-    const angleUnits = new Set(['deg', 'grad', 'rad', 'turn']);
-    if (angleUnits.has(unit)) return new CSSUnitValue(1, 'deg');
-
-    const timeUnits = new Set(['s', 'ms']);
-    if (timeUnits.has(unit)) return new CSSUnitValue(1, 's');
-
-    const frequencyUnits = new Set(['Hz', 'kHz']);
-    if (frequencyUnits.has(unit)) return new CSSUnitValue(1, 'Hz');
-
-    const resolutionUnits = new Set(['dpi', 'dpcm', 'dppx']);
-    if (resolutionUnits.has(unit)) return new CSSUnitValue(1, 'dpi');
+    if (LENGTH_UNITS.has(unit)) return new CSSUnitValue(1, 'px');
+    if (ANGLE_UNITS.has(unit)) return new CSSUnitValue(1, 'deg');
+    if (TIME_UNITS.has(unit)) return new CSSUnitValue(1, 's');
+    if (FREQUENCY_UNITS.has(unit)) return new CSSUnitValue(1, 'Hz');
+    if (RESOLUTION_UNITS.has(unit)) return new CSSUnitValue(1, 'dpi');
 
     if (unit === 'fr') return new CSSUnitValue(1, 'fr');
 

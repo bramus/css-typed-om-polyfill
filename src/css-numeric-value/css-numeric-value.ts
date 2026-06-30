@@ -492,6 +492,16 @@ export function matchesAnglePercentage(type: CSSNumericType): boolean {
   return matchesAngle(type) || matchesPercentage(type);
 }
 
+export function matchesNumber(type: CSSNumericType): boolean {
+  return (type.length || 0) === 0 &&
+         (type.angle || 0) === 0 &&
+         (type.time || 0) === 0 &&
+         (type.frequency || 0) === 0 &&
+         (type.resolution || 0) === 0 &&
+         (type.flex || 0) === 0 &&
+         (type.percent || 0) === 0;
+}
+
 function unitMapsEqual(m1: Record<string, number>, m2: Record<string, number>): boolean {
   const keys1 = Object.keys(m1);
   const keys2 = Object.keys(m2);
