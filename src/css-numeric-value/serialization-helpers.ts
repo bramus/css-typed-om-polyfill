@@ -1,6 +1,7 @@
 import { CSSNumericValue } from './css-numeric-value';
 import { CSSUnitValue } from './css-unit-value';
 import { type CSSNumericType } from './css-numeric-value';
+import { ABSOLUTE_UNITS } from '../units';
 
 const canonicalUnits: Record<string, string> = {
   length: 'px',
@@ -10,16 +11,8 @@ const canonicalUnits: Record<string, string> = {
   resolution: 'dppx'
 };
 
-const absoluteUnits = new Set([
-  'px', 'cm', 'mm', 'in', 'pt', 'pc',
-  'deg', 'rad', 'grad', 'turn',
-  's', 'ms',
-  'hz', 'khz',
-  'dppx', 'dpi', 'dpcm'
-]);
-
 export function toCanonical(val: CSSNumericValue): CSSNumericValue {
-  if (val instanceof CSSUnitValue && absoluteUnits.has(val.unit)) {
+  if (val instanceof CSSUnitValue && ABSOLUTE_UNITS.has(val.unit)) {
     const type = val.type();
     for (const [dim, canonical] of Object.entries(canonicalUnits)) {
       if (type[dim as keyof CSSNumericType] === 1) {

@@ -4,6 +4,7 @@ import { CSSTransformValue, CSSTransformComponent, CSSTranslate, CSSRotate, CSSS
 import { CSSColorValue, CSSRGB, CSSHSL, CSSHWB, CSSLab, CSSLCH, CSSOKLab, CSSOKLCH, CSSColor } from './css-color-value';
 import { StylePropertyMapReadOnly, StylePropertyMap } from './style-property-map';
 import './parser/css-value-parser';
+import { FACTORY_UNITS } from './units';
 
 // Export everything for module usage
 export {
@@ -47,27 +48,7 @@ export {
 };
 
 // Setup the CSS factory functions
-const units = [
-  "number", "percent",
-  // Lengths
-  "em", "rem", "ex", "rex", "cap", "rcap", "ch", "rch", "ic", "ric", "lh", "rlh",
-  "vw", "vh", "vi", "vb", "vmin", "vmax",
-  "svw", "svh", "svi", "svb", "svmin", "svmax",
-  "lvw", "lvh", "lvi", "lvb", "lvmin", "lvmax",
-  "dvw", "dvh", "dvi", "dvb", "dvmin", "dvmax",
-  "cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax",
-  "cm", "mm", "Q", "in", "pt", "pc", "px",
-  // Angles
-  "deg", "grad", "rad", "turn",
-  // Times
-  "s", "ms",
-  // Frequencies
-  "Hz", "kHz",
-  // Resolutions
-  "dpi", "dpcm", "dppx",
-  // Flex
-  "fr"
-];
+const units = FACTORY_UNITS;
 
 const cssFactories: Record<string, (val: number) => CSSUnitValue> = {};
 for (const unit of units) {

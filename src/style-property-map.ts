@@ -2,6 +2,7 @@ import { CSSStyleValue, CSSUnparsedValue, CSSKeywordValue } from './css-style-va
 import { CSSUnitValue, CSSMathValue } from './css-numeric-value';
 import { simplifyCalculation } from './parser/simplify-calculation';
 import { getDummyStyle, isSupportedProperty, isShorthandProperty, serializeComputedBackground, splitCommated, listValuedProperties } from './utils';
+import { LENGTH_UNITS, ANGLE_UNITS, TIME_UNITS, FREQUENCY_UNITS, RESOLUTION_UNITS } from './units';
 
 
 
@@ -29,12 +30,6 @@ function shouldWrapInCalc(property: string, val: CSSUnitValue): boolean {
 
   return false;
 }
-
-const LENGTH_UNITS = new Set(['cap', 'ch', 'em', 'ex', 'ic', 'lh', 'rcap', 'rch', 'rem', 'rex', 'ric', 'rlh', 'vh', 'vmax', 'vmin', 'vw', 'cqw', 'cqh', 'cqi', 'cqb', 'cqmin', 'cqmax', 'px', 'cm', 'mm', 'in', 'pt', 'pc', 'Q']);
-const ANGLE_UNITS = new Set(['deg', 'grad', 'rad', 'turn']);
-const TIME_UNITS = new Set(['s', 'ms']);
-const FREQUENCY_UNITS = new Set(['Hz', 'kHz']);
-const RESOLUTION_UNITS = new Set(['dpi', 'dpcm', 'dppx']);
 
 function validateValuesForProperty(property: string, values: (CSSStyleValue | string)[]): string {
   const propLower = property.toLowerCase();
