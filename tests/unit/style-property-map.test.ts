@@ -50,4 +50,16 @@ describe('StylePropertyMap and DOM Integration', () => {
     expect(display).toBeInstanceOf(CSSKeywordValue);
     expect((display as CSSKeywordValue).value).toBe('flex');
   });
+
+  it('should handle pending substitutions for new shorthands', () => {
+    const div = document.createElement('div');
+    // Set shorthand 'background' to a var reference
+    div.attributeStyleMap.set('background', 'var(--my-bg)');
+    
+    // Attempting to append to 'background-image' should throw TypeError because 'background' (its shorthand) contains a var()
+    expect(() => {
+      div.attributeStyleMap.append('background-image', 'url("image.png")');
+    }).toThrow(TypeError);
+  });
 });
+
