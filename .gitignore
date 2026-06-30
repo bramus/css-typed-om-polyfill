@@ -1,4 +1,4 @@
 /build
 /node_modules
-/tests/wpt/wpt
+/tests/wpt/src
 tests/wpt/report/*

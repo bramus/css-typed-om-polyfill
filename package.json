@@ -23,10 +23,10 @@
     "build:types": "tsc --declaration --emitDeclarationOnly --outFile build/index.d.ts",
     "test": "npm run test:unit",
     "test:unit": "vitest run",
-    "test:wpt": "npm run test:wpt:setup && cd tests/wpt/wpt && (python wpt run --headless -y --log-wptreport ../report/data.json --log-wptscreenshot=../report/screenshots.txt --log-html=../report/index.html --inject-script ../../../build/css-typed-om-polyfill.iife.js firefox css/css-typed-om || true)",
-    "test:wpt:baseline": "npm run test:wpt:setup && cd tests/wpt/wpt && (python wpt run --headless -y --log-wptreport ../report/data-baseline.json --log-wptscreenshot=../report/screenshots-baseline.txt --log-html=../report/index-baseline.html firefox css/css-typed-om || true)",
-    "test:wpt:local": "npm run test:wpt:setup && cd tests/wpt/wpt && python wpt serve --inject-script ../../../build/css-typed-om-polyfill.iife.js",
-    "test:wpt:setup": "node tests/wpt/setup/checkout-wpt.mjs && mkdir -p tests/wpt/report"
+    "test:wpt": "npm run test:wpt:setup && cd tests/wpt/src && (python wpt run --headless -y --log-wptreport ../report/data.json --log-wptscreenshot=../report/screenshots.txt --log-html=../report/index.html --inject-script ../../../build/css-typed-om-polyfill.iife.js firefox css/css-typed-om || true) && cd ../../../ && npm run test:wpt:report",
+    "test:wpt:local": "npm run test:wpt:setup && cd tests/wpt/src && python wpt serve --inject-script ../../../build/css-typed-om-polyfill.iife.js",
+    "test:wpt:setup": "node tests/wpt/scripts/checkout-wpt.mjs && mkdir -p tests/wpt/report",
+    "test:wpt:report": "node tests/wpt/scripts/generate-expected.js"
   },
   "keywords": [],
   "author": "",
