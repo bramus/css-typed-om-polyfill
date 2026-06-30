@@ -18,6 +18,7 @@ import {
 } from './tokenizer';
 import { CSSStyleValue, CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue, type CSSUnparsedSegment, CSSImageValue } from '../css-style-value';
 import { CSSNumericValue, CSSUnitValue } from '../css-numeric-value';
+import { isSupportedProperty, getDummyStyle, listValuedProperties } from '../utils';
 import { parseCSSNumericValue } from './css-numeric-parser';
 import {
   CSSTransformValue,
@@ -64,15 +65,35 @@ const colorNames: Record<string, [number, number, number, number?]> = {
   orange: [255, 165, 0]
 };
 
-export function parseCSSValue(property: string, cssText: string): CSSStyleValue {
+export function parseCSSValue(property: string, cssText: string, forceColorValue: boolean = false): CSSStyleValue {
   const trimmed = cssText.trim();
-  if (trimmed === '') {
-    throw new SyntaxError('Empty CSS text');
+  
+  const propLower = property.toLowerCase();
+  if (!isSupportedProperty(propLower)) {
+    throw new TypeError(`Unsupported property: ${property}`);
   }
 
-  if (property.startsWith('--')) {
+  if (trimmed === '') {
+    throw new TypeError('Empty CSS text');
+  }
+
+  if (propLower.startsWith('--')) {
     const tokens = tokenizeString(trimmed);
     return parseUnparsedValue(tokens);
+  }
+
+  // Validate value for standard properties (if it doesn't contain var())
+  if (!trimmed.toLowerCase().includes('var(')) {
+    const dummy = getDummyStyle();
+    dummy.cssText = '';
+    try {
+      dummy.setProperty(property, trimmed);
+      if (dummy.getPropertyValue(property) === '') {
+        throw new TypeError(`Invalid value for property ${property}: ${cssText}`);
+      }
+    } catch (e) {
+      throw new TypeError(`Invalid value for property ${property}: ${cssText}`);
+    }
   }
 
   // 1. Try to parse as a numeric value
@@ -83,7 +104,7 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
   // 2. Tokenize and parse other values
   const tokens = tokenizeString(trimmed);
   if (tokens.length === 0) {
-    throw new SyntaxError('Invalid CSS value');
+    throw new TypeError('Invalid CSS value');
   }
 
   // Helper: check if it contains var()
@@ -99,8 +120,8 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
     } catch (e) {}
   }
 
-  // 4. Try to parse as a color value
-  if (isColorValue(tokens, trimmed)) {
+  // 4. Try to parse as a color value (only if forced)
+  if (forceColorValue && isColorValue(tokens, trimmed)) {
     try {
       return parseColorValue(tokens, trimmed);
     } catch (e) {
@@ -115,6 +136,10 @@ export function parseCSSValue(property: string, cssText: string): CSSStyleValue 
 
   // 5. Try to parse as keyword
   if (tokens.length === 1 && tokens[0] instanceof IdentToken) {
+    const name = tokens[0].value.toLowerCase();
+    if (colorNames[name]) {
+      return new CSSStyleValue(trimmed, Symbol.for('css-typed-om-polyfill-private-token'));
+    }
     return new CSSKeywordValue(tokens[0].value);
   }
 
@@ -142,10 +167,34 @@ function tokensToString(tokens: Token[]): string {
   }).join('').trim();
 }
 
-export function parseAllCSSValues(property: string, cssText: string): CSSStyleValue[] {
+export function parseAllCSSValues(property: string, cssText: string, forceColorValue: boolean = false): CSSStyleValue[] {
   const trimmed = cssText.trim();
+  
+  const propLower = property.toLowerCase();
+  if (!isSupportedProperty(propLower)) {
+    throw new TypeError(`Unsupported property: ${property}`);
+  }
+
   if (trimmed === '') {
-    return [];
+    throw new TypeError('Empty CSS text');
+  }
+
+  if (!listValuedProperties.has(propLower)) {
+    return [parseCSSValue(property, trimmed, forceColorValue)];
+  }
+
+  // Validate the whole list for standard properties (if it doesn't contain var())
+  if (!trimmed.toLowerCase().includes('var(')) {
+    const dummy = getDummyStyle();
+    dummy.cssText = '';
+    try {
+      dummy.setProperty(property, trimmed);
+      if (dummy.getPropertyValue(property) === '') {
+        throw new TypeError(`Invalid value for property ${property}: ${cssText}`);
+      }
+    } catch (e) {
+      throw new TypeError(`Invalid value for property ${property}: ${cssText}`);
+    }
   }
 
   // Split by top-level commas
@@ -174,7 +223,7 @@ export function parseAllCSSValues(property: string, cssText: string): CSSStyleVa
 
   return parts.map(part => {
     const partText = tokensToString(part);
-    return parseCSSValue(property, partText);
+    return parseCSSValue(property, partText, forceColorValue);
   });
 }
 
@@ -446,7 +495,9 @@ function parseColorValue(tokens: Token[], cssText: string): CSSColorValue | CSSS
   if (tokens.length === 1 && tokens[0] instanceof IdentToken) {
     const name = tokens[0].value.toLowerCase();
     if (colorNames[name]) {
-      return new CSSKeywordValue(name);
+      const rgb = colorNames[name]!;
+      const alpha = rgb[3] !== undefined ? rgb[3] : 1;
+      return new CSSRGB(new CSSUnitValue(rgb[0], 'number'), new CSSUnitValue(rgb[1], 'number'), new CSSUnitValue(rgb[2], 'number'), alpha);
     }
     if (systemColors.has(name)) {
       return new CSSKeywordValue(name);

@@ -1,7 +1,8 @@
+// @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import { tokenizeString } from '../../src/parser/tokenizer';
-import { parseCSSValue, parseAllCSSValues } from '../../src/parser/css-value-parser';
-import { CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue, CSSImageValue } from '../../src/css-style-value';
+import { parseCSSValue, parseAllCSSValues, parseColor } from '../../src/parser/css-value-parser';
+import { CSSStyleValue, CSSKeywordValue, CSSUnparsedValue, CSSVariableReferenceValue, CSSImageValue } from '../../src/css-style-value';
 import { CSSUnitValue, CSSMathSum, CSSMathProduct } from '../../src/css-numeric-value';
 import { CSSTransformValue, CSSTranslate, CSSRotate } from '../../src/css-transform-value';
 import { CSSRGB, CSSHSL } from '../../src/css-color-value';
@@ -60,17 +61,31 @@ describe('CSS Value Parser', () => {
   });
 
   it('should parse color values', () => {
+    // By default, parseCSSValue should NOT parse colors into CSSColorValue subclasses (Level 1 restriction)
     const valHex = parseCSSValue('color', '#ff0000');
-    expect(valHex).toBeInstanceOf(CSSRGB);
-    expect(valHex.toString()).toBe('rgb(255, 0, 0)');
+    expect(valHex.constructor.name).toBe('CSSStyleValue');
+    expect(valHex.toString()).toBe('#ff0000');
 
     const valNamed = parseCSSValue('color', 'red');
-    expect(valNamed).toBeInstanceOf(CSSKeywordValue);
+    expect(valNamed.constructor.name).toBe('CSSStyleValue');
     expect(valNamed.toString()).toBe('red');
 
     const valHsl = parseCSSValue('color', 'hsl(120 100% 50%)');
-    expect(valHsl).toBeInstanceOf(CSSHSL);
-    expect(valHsl.toString()).toBe('hsl(120deg 100% 50% / 100%)');
+    expect(valHsl.constructor.name).toBe('CSSStyleValue');
+    expect(valHsl.toString()).toBe('hsl(120 100% 50%)');
+
+    // parseColor should parse them into CSSColorValue subclasses
+    const colorHex = parseColor('#ff0000');
+    expect(colorHex).toBeInstanceOf(CSSRGB);
+    expect(colorHex.toString()).toBe('rgb(255, 0, 0)');
+
+    const colorNamed = parseColor('red');
+    expect(colorNamed).toBeInstanceOf(CSSRGB);
+    expect(colorNamed.toString()).toBe('rgb(255, 0, 0)');
+
+    const colorHsl = parseColor('hsl(120 100% 50%)');
+    expect(colorHsl).toBeInstanceOf(CSSHSL);
+    expect(colorHsl.toString()).toBe('hsl(120deg 100% 50% / 100%)');
   });
 
   it('should parse all values in a comma-separated list', () => {

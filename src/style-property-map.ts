@@ -1,66 +1,9 @@
 import { CSSStyleValue, CSSUnparsedValue, CSSKeywordValue } from './css-style-value';
 import { CSSUnitValue, CSSMathValue } from './css-numeric-value';
 import { simplifyCalculation } from './parser/simplify-calculation';
+import { getDummyStyle, isSupportedProperty, isShorthandProperty, serializeComputedBackground, splitCommated, listValuedProperties } from './utils';
 
-const listValuedProperties = new Set([
-  'background-attachment',
-  'background-blend-mode',
-  'background-clip',
-  'background-image',
-  'background-origin',
-  'background-position',
-  'background-repeat',
-  'background-size',
-  'box-shadow',
-  'text-shadow',
-  'transition-property',
-  'transition-duration',
-  'transition-timing-function',
-  'transition-delay',
-  'animation-name',
-  'animation-duration',
-  'animation-timing-function',
-  'animation-delay',
-  'animation-iteration-count',
-  'animation-direction',
-  'animation-fill-mode',
-  'animation-play-state',
-  'font-family',
-  'font-feature-settings',
-  'font-variation-settings',
-  'mask-clip',
-  'mask-composite',
-  'mask-image',
-  'mask-mode',
-  'mask-origin',
-  'mask-position',
-  'mask-repeat',
-  'mask-size',
-]);
 
-let dummyStyle: CSSStyleDeclaration | null = null;
-function getDummyStyle(): CSSStyleDeclaration {
-  if (!dummyStyle) {
-    dummyStyle = document.createElement('div').style;
-  }
-  return dummyStyle;
-}
-
-export function isSupportedProperty(property: string): boolean {
-  if (property.startsWith('--')) return true;
-  const dummy = getDummyStyle();
-  dummy.cssText = '';
-  dummy.setProperty(property, 'inherit');
-  return dummy.length > 0;
-}
-
-export function isShorthandProperty(property: string): boolean {
-  if (property.startsWith('--')) return false;
-  const dummy = getDummyStyle();
-  dummy.cssText = '';
-  dummy.setProperty(property, 'inherit');
-  return dummy.length > 1;
-}
 
 function shouldWrapInCalc(property: string, val: CSSUnitValue): boolean {
   const propLower = property.toLowerCase();
@@ -257,17 +200,28 @@ const borderWidthProperties = new Set([
   'border-bottom-width'
 ]);
 
+const cornerRadiusProperties = new Set([
+  'border-top-left-radius',
+  'border-top-right-radius',
+  'border-bottom-left-radius',
+  'border-bottom-right-radius'
+]);
+
+const alwaysResolveProperties = new Set([
+  'font-size',
+  'word-spacing',
+  'line-height',
+  'vertical-align'
+]);
+
+
+
 const unsupportedComputedProperties = new Set([
   'border-image-slice',
   'border-image-width',
   'border-image-outset',
   'border-image-repeat',
   'border-image-source',
-  'border-top-left-radius',
-  'border-top-right-radius',
-  'border-bottom-left-radius',
-  'border-bottom-right-radius',
-  'background-size',
   'column-rule-width',
   'column-rule-style',
   'clip-path',
@@ -276,7 +230,7 @@ const unsupportedComputedProperties = new Set([
 
 const cssWideKeywords = new Set(['initial', 'inherit', 'unset', 'revert', 'revert-layer']);
 
-function shouldFallbackToCSSStyleValue(property: string, value: string): boolean {
+function shouldFallbackToCSSStyleValue(property: string, value: string, isComputed: boolean): boolean {
   const valueLower = value.toLowerCase().trim();
   if (cssWideKeywords.has(valueLower)) return false;
   if (valueLower.includes('var(')) return false;
@@ -287,6 +241,12 @@ function shouldFallbackToCSSStyleValue(property: string, value: string): boolean
   }
   if (propLower === 'cursor') {
     return valueLower.includes('url(');
+  }
+  if (propLower === 'will-change') {
+    return valueLower !== 'auto';
+  }
+  if (isComputed && cornerRadiusProperties.has(propLower)) {
+    return true;
   }
   return unsupportedComputedProperties.has(propLower);
 }
@@ -334,7 +294,10 @@ export class StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
-    if (this.element && this.element instanceof HTMLElement) {
+    if (this.element && this.element instanceof HTMLElement &&
+        !cornerRadiusProperties.has(propLower) &&
+        !unsupportedComputedProperties.has(propLower) &&
+        !alwaysResolveProperties.has(propLower)) {
       const inlineVal = (this.element.attributeStyleMap as any).get(property) as CSSStyleValue | undefined;
       if (inlineVal && !opacityProperties.has(propLower)) {
         if (inlineVal instanceof CSSUnitValue && inlineVal.unit === 'percent') {
@@ -368,7 +331,18 @@ export class StylePropertyMapReadOnly {
         }
       }
     }
-    let value = this.style.getPropertyValue(property);
+    let value = propLower === 'background' ? serializeComputedBackground(this.style) : this.style.getPropertyValue(property);
+    if (propLower === 'background-size' && value) {
+      const parts = splitCommated(value);
+      const simplified = parts.map(p => {
+        if (p.endsWith(' auto')) {
+          return p.slice(0, -5);
+        }
+        return p;
+      });
+      value = simplified.join(', ');
+    }
+
     if (this.element && borderWidthProperties.has(propLower)) {
       value = getComputedBorderWidth(this.element, property, this.style);
     }
@@ -378,10 +352,20 @@ export class StylePropertyMapReadOnly {
       }
     }
     if (!value) return undefined;
-    if (shouldFallbackToCSSStyleValue(property, value)) {
+    if (shouldFallbackToCSSStyleValue(property, value, true)) {
       return new CSSStyleValue(value, privateToken);
     }
     if (isShorthandProperty(propLower)) {
+      if (value.toLowerCase().includes('var(')) {
+        try {
+          const values = CSSStyleValue.parseAll(property, value);
+          const val = values[0];
+          if (val) {
+            (val as any)._associatedProperty = propLower;
+            return val;
+          }
+        } catch (e) {}
+      }
       const val = new CSSStyleValue(value, privateToken);
       (val as any)._associatedProperty = propLower;
       return val;
@@ -460,8 +444,19 @@ export class StylePropertyMapReadOnly {
       }
     }
     if (!value) return [];
-    if (shouldFallbackToCSSStyleValue(property, value)) {
-      return [new CSSStyleValue(value, privateToken)];
+    if (isShorthandProperty(propLower)) {
+      if (value.toLowerCase().includes('var(')) {
+        try {
+          const results = CSSStyleValue.parseAll(property, value);
+          for (const val of results) {
+            (val as any)._associatedProperty = propLower;
+          }
+          return results;
+        } catch (e) {}
+      }
+      const val = new CSSStyleValue(value, privateToken);
+      (val as any)._associatedProperty = propLower;
+      return [val];
     }
     try {
       return CSSStyleValue.parseAll(property, value);
@@ -604,10 +599,23 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     }
 
     if (!currentValue) return undefined;
-    if (shouldFallbackToCSSStyleValue(property, currentValue)) {
+    if (cssWideKeywords.has(currentValue.toLowerCase().trim())) {
+      return new CSSKeywordValue(currentValue.trim());
+    }
+    if (shouldFallbackToCSSStyleValue(property, currentValue, false)) {
       return new CSSStyleValue(currentValue, privateToken);
     }
     if (isShorthandProperty(propLower)) {
+      if (currentValue.toLowerCase().includes('var(')) {
+        try {
+          const values = CSSStyleValue.parseAll(property, currentValue);
+          const val = values[0];
+          if (val) {
+            (val as any)._associatedProperty = propLower;
+            return val;
+          }
+        } catch (e) {}
+      }
       const val = new CSSStyleValue(currentValue, privateToken);
       (val as any)._associatedProperty = propLower;
       return val;
@@ -643,8 +651,19 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     }
 
     if (!currentValue) return [];
-    if (shouldFallbackToCSSStyleValue(property, currentValue)) {
-      return [new CSSStyleValue(currentValue, privateToken)];
+    if (isShorthandProperty(propLower)) {
+      if (currentValue.toLowerCase().includes('var(')) {
+        try {
+          const results = CSSStyleValue.parseAll(property, currentValue);
+          for (const val of results) {
+            (val as any)._associatedProperty = propLower;
+          }
+          return results;
+        } catch (e) {}
+      }
+      const val = new CSSStyleValue(currentValue, privateToken);
+      (val as any)._associatedProperty = propLower;
+      return [val];
     }
     try {
       return CSSStyleValue.parseAll(property, currentValue);
@@ -724,6 +743,16 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    if (isShorthandProperty(propLower)) {
+      for (const val of values) {
+        if (typeof val !== 'string' && 
+            val.constructor !== CSSStyleValue && 
+            val.constructor !== CSSKeywordValue && 
+            val.constructor !== CSSUnparsedValue) {
+          throw new TypeError(`Cannot set shorthand property ${property} with ${val.constructor.name}`);
+        }
+      }
+    }
 
     if (values.length === 0) {
       this.delete(property);
@@ -736,10 +765,35 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     // Update cache
     try {
       let parsedValues: CSSStyleValue[];
-      if (shouldFallbackToCSSStyleValue(property, finalString)) {
-        parsedValues = [new CSSStyleValue(finalString, privateToken)];
+      const isShorthand = isShorthandProperty(propLower);
+      if (shouldFallbackToCSSStyleValue(property, finalString, false)) {
+        const val = new CSSStyleValue(finalString, privateToken);
+        if (isShorthand) {
+          (val as any)._associatedProperty = propLower;
+        }
+        parsedValues = [val];
       } else {
-        parsedValues = CSSStyleValue.parseAll(property, finalString);
+        try {
+          parsedValues = CSSStyleValue.parseAll(property, finalString);
+          if (isShorthand) {
+            parsedValues = parsedValues.map(val => {
+              if (val instanceof CSSKeywordValue || val instanceof CSSUnparsedValue) {
+                return val;
+              }
+              const fallback = new CSSStyleValue(finalString, privateToken);
+              (fallback as any)._associatedProperty = propLower;
+              return fallback;
+            });
+          }
+        } catch (e) {
+          if (isShorthand) {
+            const val = new CSSStyleValue(finalString, privateToken);
+            (val as any)._associatedProperty = propLower;
+            parsedValues = [val];
+          } else {
+            throw e;
+          }
+        }
       }
       this._cache.set(propLower, {
         values: parsedValues,
@@ -791,7 +845,7 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
       existingValues = cached.values;
     } else {
       if (currentValue) {
-        if (shouldFallbackToCSSStyleValue(property, currentValue)) {
+        if (shouldFallbackToCSSStyleValue(property, currentValue, false)) {
           existingValues = [new CSSStyleValue(currentValue, privateToken)];
         } else {
           try {
@@ -810,7 +864,7 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     // Update cache
     try {
       let parsedValues: CSSStyleValue[];
-      if (shouldFallbackToCSSStyleValue(property, finalString)) {
+      if (shouldFallbackToCSSStyleValue(property, finalString, false)) {
         parsedValues = [new CSSStyleValue(finalString, privateToken)];
       } else {
         parsedValues = CSSStyleValue.parseAll(property, finalString);
@@ -835,6 +889,7 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+
     this.style.removeProperty(property);
     this._cache.delete(propLower);
   }

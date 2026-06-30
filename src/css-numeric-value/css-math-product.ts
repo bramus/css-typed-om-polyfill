@@ -2,6 +2,7 @@ import { CSSMathValue } from './css-math-value';
 import { CSSNumericArray } from './css-numeric-array';
 import { CSSNumericValue, type CSSNumberish, type CSSNumericType, toNumericValue, createEmptyType, cleanType, multiplyTypes } from './css-numeric-value';
 import { toCanonical, compareTerms } from './serialization-helpers';
+import { CSSMathInvert } from './css-math-invert';
 
 
 
@@ -55,20 +56,44 @@ export class CSSMathProduct extends CSSMathValue {
       s += 'calc(';
     }
 
-    const processedValues = Array.from(this.values)
-      .map(toCanonical)
-      .sort(compareTerms);
+    const numerator: CSSNumericValue[] = [];
+    const denominator: CSSNumericValue[] = [];
 
-    s += processedValues[0]!._serialize(true, false);
-
-    for (let i = 1; i < processedValues.length; i++) {
-      const arg = processedValues[i]!;
-      if (arg instanceof CSSMathValue && arg.operator === 'invert') {
-        s += ' / ';
-        s += (arg as any).value._serialize(true, false);
+    for (const val of this.values) {
+      const canonical = toCanonical(val);
+      if (canonical instanceof CSSMathInvert) {
+        denominator.push((canonical as any).value);
       } else {
+        numerator.push(canonical);
+      }
+    }
+
+    numerator.sort(compareTerms);
+    denominator.sort(compareTerms);
+
+    if (numerator.length === 0) {
+      s += '1';
+    } else {
+      s += numerator[0]!._serialize(true, false);
+      for (let i = 1; i < numerator.length; i++) {
         s += ' * ';
-        s += arg._serialize(true, false);
+        s += numerator[i]!._serialize(true, false);
+      }
+    }
+
+    if (denominator.length > 0) {
+      s += ' / ';
+      const wrapDenominator = denominator.length > 1;
+      if (wrapDenominator) {
+        s += '(';
+      }
+      s += denominator[0]!._serialize(true, false);
+      for (let i = 1; i < denominator.length; i++) {
+        s += ' * ';
+        s += denominator[i]!._serialize(true, false);
+      }
+      if (wrapDenominator) {
+        s += ')';
       }
     }
 
