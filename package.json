@@ -26,13 +26,14 @@
     "build:module": "esbuild src/index.ts --sourcemap --bundle --outfile=build/index.js --platform=browser --format=esm",
     "build:iife": "esbuild src/index.ts --bundle --format=iife --outfile=build/typed-om-polyfill.iife.js",
     "build:types": "tsc --declaration --emitDeclarationOnly --outFile build/index.d.ts",
+    "require-pristine-tree": "exit $(git status --porcelain | wc -l)",
     "test": "npm run test:unit && npm run test:wpt",
     "test:unit": "npm run build && vitest run",
     "test:wpt": "npm run build && npm run test:wpt:setup && cd tests/wpt/src && (python wpt run --headless -y --log-wptreport ../report/data.json --log-wptscreenshot=../report/screenshots.txt --log-html=../report/index.html --inject-script ../../../build/typed-om-polyfill.iife.js firefox css/css-typed-om || true) && cd ../../../ && npm run test:wpt:report",
     "test:wpt:local": "npm run test:wpt:setup && cd tests/wpt/src && python wpt serve --inject-script ../../../build/typed-om-polyfill.iife.js",
     "test:wpt:setup": "node tests/wpt/scripts/checkout-wpt.mjs && mkdir -p tests/wpt/report",
     "test:wpt:report": "node tests/wpt/scripts/generate-expected.js",
-    "prepack": "npm run test"
+    "prepack": "npm run test && npm run require-pristine-tree"
   },
   "keywords": [
     "css",
