@@ -21,7 +21,7 @@ This project is fully tested using the official [Web Platform Tests (WPT)](https
 ## Installation
 
 ```bash
-npm install css-typed-om-polyfill
+npm install typed-om-polyfill
 ```
 
 ## Usage
@@ -31,7 +31,7 @@ npm install css-typed-om-polyfill
 Simply import the package to automatically install the polyfill on the global scope:
 
 ```javascript
-import 'css-typed-om-polyfill';
+import 'typed-om-polyfill';
 
 // Now you can use the typed OM API
 const element = document.querySelector('.my-element');
@@ -50,7 +50,7 @@ element.attributeStyleMap.set('margin-top', CSS.px(20));
 If you prefer to use the classes directly without relying on global patching (or for testing/Node environments):
 
 ```javascript
-import { CSSUnitValue, CSSKeywordValue } from 'css-typed-om-polyfill';
+import { CSSUnitValue, CSSKeywordValue } from 'typed-om-polyfill';
 
 const width = new CSSUnitValue(100, 'px');
 const display = new CSSKeywordValue('block');
@@ -76,12 +76,16 @@ npm run build
 
 ### Testing
 
-The project has two types of tests:
+To run all tests (unit and Web Platform Tests):
+
+```bash
+npm run test
+```
+
+Or you can run them individually:
 
 1.  **Unit Tests**: Fast tests using Vitest.
     ```bash
-    npm run test
-    # or
     npm run test:unit
     ```
 
