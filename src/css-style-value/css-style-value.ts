@@ -21,10 +21,13 @@ export class CSSStyleValue {
     return this.constructor.name;
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssstylevalue
   toString(): string {
     if (!(this instanceof CSSStyleValue)) {
       throw new TypeError("Value of 'this' is not a CSSStyleValue");
     }
+    // @NOTE: Returning the stored cssText. Subclasses will override this
+    // to implement their own serialization algorithms.
     return this.cssText || '';
   }
 

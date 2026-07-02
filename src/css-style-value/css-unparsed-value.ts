@@ -46,11 +46,22 @@ export class CSSUnparsedValue extends CSSStyleValue {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssunparsedvalue
   toString(): string {
+    // 1. Let result be the empty string.
+    // 2. For each segment in this's associated list of segments:
     const serializedSegments = this._segments.map(segment => {
       if (typeof segment === 'string') {
+        // 1. If segment is a string, append segment to result.
         return segment;
       } else {
+        // 2. If segment is a CSSVariableReferenceValue:
+        //    1. Append "var(" to result.
+        //    2. Append segment's variable to result.
+        //    3. If segment has a fallback:
+        //       1. Append "," to result.
+        //       2. Append the serialization of segment's fallback to result.
+        //    4. Append ")" to result.
         const fallbackStr = segment.fallback ? `,${segment.fallback.toString()}` : '';
         return `var(${segment.variable}${fallbackStr})`;
       }
@@ -61,6 +72,8 @@ export class CSSUnparsedValue extends CSSStyleValue {
     }
 
     let result = serializedSegments[0]!;
+    // @NOTE: Deviating from spec: Inserting '/**/' between segments that end/start
+    // with identifier characters to prevent them from merging into a single token.
     for (let i = 1; i < serializedSegments.length; i++) {
       const next = serializedSegments[i]!;
       if (result === '' || next === '') {
@@ -74,6 +87,7 @@ export class CSSUnparsedValue extends CSSStyleValue {
       }
       result += next;
     }
+    // 3. Return result.
     return result;
   }
 }

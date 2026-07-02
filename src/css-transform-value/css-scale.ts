@@ -99,7 +99,17 @@ export class CSSScale extends CSSTransformComponent {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssscale
   toString(): string {
+    if (!(this instanceof CSSScale)) {
+      throw new TypeError("Value of 'this' is not a CSSScale");
+    }
+    // 1. The CSS function name of the transform is:
+    //    - scale if is2D is true.
+    //    - scale3d if is2D is false.
+    // 2. The arguments are:
+    //    - If is2D is true: x and y.
+    //    - If is2D is false: x, y, and z.
     if (this.is2D) {
       return `scale(${toNumericValue(this.x).toString()}, ${toNumericValue(this.y).toString()})`;
     }

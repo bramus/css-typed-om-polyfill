@@ -132,7 +132,17 @@ export class CSSRotate extends CSSTransformComponent {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssrotate
   toString(): string {
+    if (!(this instanceof CSSRotate)) {
+      throw new TypeError("Value of 'this' is not a CSSRotate");
+    }
+    // 1. The CSS function name of the transform is:
+    //    - rotate if is2D is true.
+    //    - rotate3d if is2D is false.
+    // 2. The arguments are:
+    //    - If is2D is true: angle.
+    //    - If is2D is false: x, y, z, and angle.
     if (this.is2D) {
       return `rotate(${this.angle.toString()})`;
     }

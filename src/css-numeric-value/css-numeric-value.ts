@@ -1,6 +1,6 @@
 import { CSSStyleValue } from '../css-style-value';
-import { parseCSSNumericValue, createSumValue, to, toSum } from '../parser/css-numeric-parser';
-import { simplifyCalculation } from '../parser/simplify-calculation';
+
+
 import type { CSSUnitValue } from './css-unit-value';
 import type { CSSMathSum } from './css-math-sum';
 import type { CSSMathValue } from './css-math-value';
@@ -30,6 +30,17 @@ export let CSSMathInvertClass: any = null;
 export let CSSMathMinClass: any = null;
 export let CSSMathMaxClass: any = null;
 export let CSSMathClampClass: any = null;
+
+let parseFn: any = null;
+let toFn: any = null;
+let toSumFn: any = null;
+
+export function registerParsers(fns: { parse: any, to: any, toSum: any }) {
+  parseFn = fns.parse;
+  toFn = fns.to;
+  toSumFn = fns.toSum;
+}
+
 
 export function registerNumericClasses(classes: {
   UnitValue: any;
@@ -106,7 +117,7 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     }
   }
 
-  abstract _serialize(nested: boolean, parenLess: boolean, minimum?: CSSNumericValue, maximum?: CSSNumericValue): string;
+  abstract _serialize(nested: boolean, parenLess: boolean, minimum?: CSSNumericValue, maximum?: CSSNumericValue, inProductNegateInvert?: boolean): string;
 
   toString(): string {
     return this._serialize(false, false);
@@ -127,7 +138,10 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (arguments.length < 1) {
       throw new TypeError(`Failed to execute 'parse' on 'CSSNumericValue': 1 argument required, but only ${arguments.length} present.`);
     }
-    return parseCSSNumericValue(cssText);
+    if (!parseFn) {
+      throw new Error('Parsers not registered. Make sure to import the index entry point.');
+    }
+    return parseFn(cssText);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-add
@@ -404,7 +418,10 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     // 4. Let val be the single value in sum.
     // 5. If val's unit is not unit, throw a TypeError.
     // 6. Return val.
-    return to(this, unit);
+    if (!toFn) {
+      throw new Error('Parsers not registered. Make sure to import the index entry point.');
+    }
+    return toFn(this, unit);
   }
 
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-tosum
@@ -421,7 +438,10 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     // 4. If units contains any duplicate values, throw a TypeError.
     // 5. If any member of units is not a valid CSS unit, throw a SyntaxError.
     // ...
-    return toSum(this, ...units);
+    if (!toSumFn) {
+      throw new Error('Parsers not registered. Make sure to import the index entry point.');
+    }
+    return toSumFn(this, ...units);
   }
 }
 

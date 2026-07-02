@@ -114,10 +114,13 @@ export class CSSTransformValue extends CSSStyleValue {
     this._components.forEach((val, index) => callbackfn.call(thisArg, val, index, this));
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-csstransformvalue
   toString(): string {
     if (!(this instanceof CSSTransformValue)) {
       throw new TypeError("Value of 'this' is not a CSSTransformValue");
     }
+    // 1. The serialization of a CSSTransformValue is the result of joining
+    //    the serializations of each of its CSSTransformComponents with a single space.
     return this._components.map(comp => comp.toString()).join(' ');
   }
 }

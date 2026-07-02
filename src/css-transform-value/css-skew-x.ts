@@ -41,7 +41,13 @@ export class CSSSkewX extends CSSTransformComponent {
     return m;
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssskewx
   toString(): string {
+    if (!(this instanceof CSSSkewX)) {
+      throw new TypeError("Value of 'this' is not a CSSSkewX");
+    }
+    // 1. The CSS function name of the transform is skewX.
+    // 2. The arguments are ax.
     return `skewX(${this.ax.toString()})`;
   }
 }

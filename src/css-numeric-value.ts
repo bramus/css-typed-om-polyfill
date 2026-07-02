@@ -1,4 +1,4 @@
-import { registerNumericClasses } from './css-numeric-value/css-numeric-value';
+import { registerNumericClasses, registerParsers } from './css-numeric-value/css-numeric-value';
 import { CSSUnitValue } from './css-numeric-value/css-unit-value';
 import { CSSMathSum } from './css-numeric-value/css-math-sum';
 import { CSSMathProduct } from './css-numeric-value/css-math-product';
@@ -7,6 +7,7 @@ import { CSSMathInvert } from './css-numeric-value/css-math-invert';
 import { CSSMathMin } from './css-numeric-value/css-math-min';
 import { CSSMathMax } from './css-numeric-value/css-math-max';
 import { CSSMathClamp } from './css-numeric-value/css-math-clamp';
+import { parseCSSNumericValue, to, toSum } from './parser/css-numeric-parser';
 
 registerNumericClasses({
   UnitValue: CSSUnitValue,
@@ -17,6 +18,12 @@ registerNumericClasses({
   MathMin: CSSMathMin,
   MathMax: CSSMathMax,
   MathClamp: CSSMathClamp,
+});
+
+registerParsers({
+  parse: parseCSSNumericValue,
+  to,
+  toSum,
 });
 
 export * from './css-numeric-value/css-numeric-value';

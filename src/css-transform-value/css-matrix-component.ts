@@ -64,7 +64,17 @@ export class CSSMatrixComponent extends CSSTransformComponent {
     return DOMMatrix.fromMatrix(this.matrix);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssmatrixcomponent
   toString(): string {
+    if (!(this instanceof CSSMatrixComponent)) {
+      throw new TypeError("Value of 'this' is not a CSSMatrixComponent");
+    }
+    // 1. The CSS function name of the transform is:
+    //    - matrix if is2D is true.
+    //    - matrix3d if is2D is false.
+    // 2. The arguments are:
+    //    - If is2D is true: a, b, c, d, e, and f.
+    //    - If is2D is false: m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, and m44.
     if (this.is2D) {
       return `matrix(${this.matrix.a}, ${this.matrix.b}, ${this.matrix.c}, ${this.matrix.d}, ${this.matrix.e}, ${this.matrix.f})`;
     }

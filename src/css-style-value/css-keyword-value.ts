@@ -26,7 +26,11 @@ export class CSSKeywordValue extends CSSStyleValue {
     this._value = val;
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-csskeywordvalue
   toString(): string {
+    // @NOTE: Deviating from spec: Using CSS.escape if available.
+    // Spec says: "The serialization of a CSSKeywordValue is its value."
+    // We escape it to ensure it is a valid identifier in the serialized output.
     if (typeof CSS !== 'undefined' && CSS.escape) {
       return CSS.escape(this.value);
     }

@@ -41,7 +41,13 @@ export class CSSSkewY extends CSSTransformComponent {
     return m;
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssskewy
   toString(): string {
+    if (!(this instanceof CSSSkewY)) {
+      throw new TypeError("Value of 'this' is not a CSSSkewY");
+    }
+    // 1. The CSS function name of the transform is skewY.
+    // 2. The arguments are ay.
     return `skewY(${this.ay.toString()})`;
   }
 }

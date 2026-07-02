@@ -42,8 +42,15 @@ export class CSSMathProduct extends CSSMathValue {
     return result;
   }
 
-  _serialize(nested: boolean, parenLess: boolean): string {
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssmathproduct
+  _serialize(nested: boolean, parenLess: boolean, minimum?: CSSNumericValue, maximum?: CSSNumericValue, inProductNegateInvert?: boolean): string {
+    if (!(this instanceof CSSMathProduct)) {
+      throw new TypeError("Value of 'this' is not a CSSMathProduct");
+    }
     let s = '';
+    // 1. If paren-less is true, continue to the next step;
+    //    otherwise, if nested is true, append "(" to s;
+    //    otherwise, append "calc(" to s.
     if (parenLess) {
       // continue
     } else if (nested) {
@@ -52,6 +59,8 @@ export class CSSMathProduct extends CSSMathValue {
       s += 'calc(';
     }
 
+    // 2. Let values be the result of canonicalizing and sorting the items in this’s values internal slot.
+    // @NOTE: We use a custom sorting that preserves relative order of non-unit values.
     const values = Array.from(this.values).map(toCanonical);
     const unitValues: { val: CSSNumericValue; index: number }[] = [];
     const otherValues: { val: CSSNumericValue; index: number }[] = [];
@@ -79,22 +88,32 @@ export class CSSMathProduct extends CSSMathValue {
       }
     }
 
-    s += processedValues[0]!._serialize(true, false);
+    // 3. Serialize values[0] with nested set to true, and append the result to s.
+    s += processedValues[0]!._serialize(true, false, undefined, undefined, true);
 
+    // 4. For each item in values after the first:
     for (let i = 1; i < processedValues.length; i++) {
       const val = processedValues[i]!;
+      // 4.1. If item is a CSSMathInvert object:
+      //      1. Append " / " to s.
+      //      2. Serialize item’s value internal slot with nested set to true, and append the result to s.
       if (val instanceof CSSMathInvert) {
         s += ' / ';
-        s += val.value._serialize(true, false);
+        s += val.value._serialize(true, false, undefined, undefined, true);
       } else {
+        // 4.2. Otherwise:
+        //      1. Append " * " to s.
+        //      2. Serialize item with nested set to true, and append the result to s.
         s += ' * ';
-        s += val._serialize(true, false);
+        s += val._serialize(true, false, undefined, undefined, true);
       }
     }
 
+    // 5. If paren-less is false, append ")" to s.
     if (!parenLess) {
       s += ')';
     }
+    // 6. Return s.
     return s;
   }
 }

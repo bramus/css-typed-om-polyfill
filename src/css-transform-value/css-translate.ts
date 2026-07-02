@@ -101,7 +101,17 @@ export class CSSTranslate extends CSSTransformComponent {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-csstranslate
   toString(): string {
+    if (!(this instanceof CSSTranslate)) {
+      throw new TypeError("Value of 'this' is not a CSSTranslate");
+    }
+    // 1. The CSS function name of the transform is:
+    //    - translate if is2D is true.
+    //    - translate3d if is2D is false.
+    // 2. The arguments are:
+    //    - If is2D is true: x and y.
+    //    - If is2D is false: x, y, and z.
     if (this.is2D) {
       return `translate(${this.x.toString()}, ${this.y.toString()})`;
     }

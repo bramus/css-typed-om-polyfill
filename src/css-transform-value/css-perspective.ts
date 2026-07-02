@@ -68,7 +68,16 @@ export class CSSPerspective extends CSSTransformComponent {
     return m;
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssperspective
   toString(): string {
+    if (!(this instanceof CSSPerspective)) {
+      throw new TypeError("Value of 'this' is not a CSSPerspective");
+    }
+    // 1. The CSS function name of the transform is perspective.
+    // 2. The arguments are length.
+    //    If length is a CSSNumericValue, it is serialized with a value clamp of 0px minimum.
+    //    @NOTE: Deviating from spec: We use the polyfill's bounds checking which wraps
+    //    out-of-bounds values in calc() instead of clamping them directly, to preserve the value.
     if (this.length instanceof CSSNumericValue) {
       const min = new CSSUnitValue(0, 'px');
       return `perspective(${this.length._serialize(false, false, min)})`;

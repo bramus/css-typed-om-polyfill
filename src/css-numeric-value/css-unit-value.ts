@@ -56,21 +56,18 @@ export class CSSUnitValue extends CSSNumericValue {
     return createAType(this.unit)!;
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssunitvalue
   _serialize(
     nested: boolean,
     parenLess: boolean,
     minimum?: CSSNumericValue,
-    maximum?: CSSNumericValue
+    maximum?: CSSNumericValue,
+    inProductNegateInvert?: boolean
   ): string {
     let s = '';
-    if (this.unit === 'number') {
-      s = `${this.value}`;
-    } else if (this.unit === 'percent') {
-      s = `${this.value}%`;
-    } else {
-      s = `${this.value}${this.unit}`;
-    }
-
+    // @NOTE: Deviating from spec: We support minimum/maximum bounds checking
+    // and wrap in calc() if the value is out of bounds. This is a polyfill-specific
+    // feature to ensure valid CSS serialization for restricted properties.
     let wrapInCalc = false;
     if (minimum instanceof CSSUnitValue) {
       if (this.unit === minimum.unit) {
@@ -101,6 +98,29 @@ export class CSSUnitValue extends CSSNumericValue {
 
     if ((minimum && !(minimum instanceof CSSUnitValue)) || (maximum && !(maximum instanceof CSSUnitValue))) {
       wrapInCalc = true;
+    }
+
+    // 2. If value is less than 0, and this is being serialized as a component of a CSSMathProduct,
+    //    or is the value of a CSSMathNegate, or is the value of a CSSMathInvert:
+    //    Append "(" to s.
+    const needsParens = !wrapInCalc && inProductNegateInvert && this.value < 0;
+
+    if (needsParens) {
+      s += '(';
+    }
+
+    // 3. Serialize value and unit
+    if (this.unit === 'number') {
+      s += `${this.value}`;
+    } else if (this.unit === 'percent') {
+      s += `${this.value}%`;
+    } else {
+      s += `${this.value}${this.unit}`;
+    }
+
+    // 4. Append ")" if needed
+    if (needsParens) {
+      s += ')';
     }
 
     if (wrapInCalc) {

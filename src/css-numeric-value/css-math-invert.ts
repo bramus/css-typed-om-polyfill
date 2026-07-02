@@ -38,8 +38,15 @@ export class CSSMathInvert extends CSSMathValue {
     return result;
   }
 
-  _serialize(nested: boolean, parenLess: boolean): string {
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssmathinvert
+  _serialize(nested: boolean, parenLess: boolean, minimum?: CSSNumericValue, maximum?: CSSNumericValue, inProductNegateInvert?: boolean): string {
+    if (!(this instanceof CSSMathInvert)) {
+      throw new TypeError("Value of 'this' is not a CSSMathInvert");
+    }
     let s = '';
+    // 1. If paren-less is true, continue to the next step;
+    //    otherwise, if nested is true, append "(" to s;
+    //    otherwise, append "calc(" to s.
     if (parenLess) {
       // continue
     } else if (nested) {
@@ -47,11 +54,15 @@ export class CSSMathInvert extends CSSMathValue {
     } else {
       s += 'calc(';
     }
+    // 2. Append "1 / " to s.
     s += '1 / ';
-    s += this.value._serialize(true, false);
+    // 3. Serialize this’s value internal slot with nested set to true, and append the result to s.
+    s += this.value._serialize(true, false, undefined, undefined, true);
+    // 4. If paren-less is false, append ")" to s.
     if (!parenLess) {
       s += ')';
     }
+    // 5. Return s.
     return s;
   }
 }

@@ -61,7 +61,13 @@ export class CSSSkew extends CSSTransformComponent {
     return m;
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#serialize-a-cssskew
   toString(): string {
+    if (!(this instanceof CSSSkew)) {
+      throw new TypeError("Value of 'this' is not a CSSSkew");
+    }
+    // 1. The CSS function name of the transform is skew.
+    // 2. The arguments are ax, and additionally ay if ay is not 0 (in any angle unit).
     if (this.ay instanceof CSSUnitValue && this.ay.value === 0) {
       return `skew(${this.ax.toString()})`;
     }

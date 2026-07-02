@@ -1,15 +1,13 @@
 import { CSSKeywordValue } from '../css-style-value';
-import {
-  CSSNumericValue,
-  CSSUnitValue,
-  CSSMathSum,
-  CSSMathProduct,
-  CSSMathNegate,
-  CSSMathInvert,
-  CSSMathMin,
-  CSSMathMax,
-  CSSMathClamp
-} from '../css-numeric-value';
+import { CSSNumericValue } from '../css-numeric-value/css-numeric-value';
+import { CSSUnitValue } from '../css-numeric-value/css-unit-value';
+import { CSSMathSum } from '../css-numeric-value/css-math-sum';
+import { CSSMathProduct } from '../css-numeric-value/css-math-product';
+import { CSSMathNegate } from '../css-numeric-value/css-math-negate';
+import { CSSMathInvert } from '../css-numeric-value/css-math-invert';
+import { CSSMathMin } from '../css-numeric-value/css-math-min';
+import { CSSMathMax } from '../css-numeric-value/css-math-max';
+import { CSSMathClamp } from '../css-numeric-value/css-math-clamp';
 import { isCanonical } from '../utils';
 import { getSetOfCompatibleUnits, convertCSSUnitValue, type UnitGroup } from './unit-utils';
 
