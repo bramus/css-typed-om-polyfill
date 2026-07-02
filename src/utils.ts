@@ -134,10 +134,12 @@ export function isSupportedProperty(property: string): boolean {
 
 export function isShorthandProperty(property: string): boolean {
   if (property.startsWith('--')) return false;
-  if (!isSupportedProperty(property)) return false;
+  const propLower = property.toLowerCase();
+  if (propLower === 'all') return true;
+  if (!isSupportedProperty(propLower)) return false;
   const dummy = getDummyStyle();
   dummy.cssText = '';
-  dummy.setProperty(property, 'inherit');
+  dummy.setProperty(propLower, 'inherit');
   return dummy.length > 1;
 }
 

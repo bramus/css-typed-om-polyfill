@@ -448,7 +448,14 @@ export class StylePropertyMapReadOnly {
         value = 'auto';
       }
     }
-    if (!value) return undefined;
+    if (!value) {
+      if (this.element && isShorthandProperty(propLower)) {
+        const val = new CSSStyleValue('', privateToken);
+        (val as any)._associatedProperty = propLower;
+        return val;
+      }
+      return undefined;
+    }
     if (shouldFallbackToCSSStyleValue(property, value, true)) {
       return new CSSStyleValue(value, privateToken);
     }
@@ -540,7 +547,14 @@ export class StylePropertyMapReadOnly {
         value = 'auto';
       }
     }
-    if (!value) return [];
+    if (!value) {
+      if (this.element && isShorthandProperty(propLower)) {
+        const val = new CSSStyleValue('', privateToken);
+        (val as any)._associatedProperty = propLower;
+        return [val];
+      }
+      return [];
+    }
     if (isShorthandProperty(propLower)) {
       if (value.toLowerCase().includes('var(')) {
         try {
