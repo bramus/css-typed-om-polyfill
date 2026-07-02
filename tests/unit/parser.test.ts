@@ -25,6 +25,12 @@ describe('CSS Value Parser', () => {
     expect((val as CSSKeywordValue).value).toBe('auto');
   });
 
+  it('should parse border-image-source none', () => {
+    const val = parseCSSValue('border-image-source', 'none');
+    expect(val).toBeInstanceOf(CSSKeywordValue);
+    expect((val as CSSKeywordValue).value).toBe('none');
+  });
+
   it('should parse simple numeric values', () => {
     const val = parseCSSValue('width', '10px');
     expect(val).toBeInstanceOf(CSSUnitValue);

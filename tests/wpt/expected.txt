@@ -2905,14 +2905,14 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/border-image-outset.html
 - PASS	'border-image-outset' does not support '1 1.2'
 - PASS	'border-image-outset' does not support '30px 2 45px'
 - PASS	'border-image-outset' does not support '7px 12px 14px 5px'
-- FAIL	Can set 'border-image-outset' to a length: -3.14em
-- FAIL	Can set 'border-image-outset' to a length: 0px
-- FAIL	Can set 'border-image-outset' to a length: 3.14cm
-- FAIL	Can set 'border-image-outset' to a length: calc(0em + 0px)
-- FAIL	Can set 'border-image-outset' to a number: -3.14
-- FAIL	Can set 'border-image-outset' to a number: 0
-- FAIL	Can set 'border-image-outset' to a number: 3.14
-- FAIL	Can set 'border-image-outset' to a number: calc(2 + 3)
+- PASS	Can set 'border-image-outset' to a length: -3.14em
+- PASS	Can set 'border-image-outset' to a length: 0px
+- PASS	Can set 'border-image-outset' to a length: 3.14cm
+- PASS	Can set 'border-image-outset' to a length: calc(0em + 0px)
+- PASS	Can set 'border-image-outset' to a number: -3.14
+- PASS	Can set 'border-image-outset' to a number: 0
+- PASS	Can set 'border-image-outset' to a number: 3.14
+- PASS	Can set 'border-image-outset' to a number: calc(2 + 3)
 - PASS	Can set 'border-image-outset' to CSS-wide keywords: inherit
 - PASS	Can set 'border-image-outset' to CSS-wide keywords: initial
 - PASS	Can set 'border-image-outset' to CSS-wide keywords: revert
@@ -2943,10 +2943,10 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/border-image-repeat.html
 - PASS	Can set 'border-image-repeat' to CSS-wide keywords: initial
 - PASS	Can set 'border-image-repeat' to CSS-wide keywords: revert
 - PASS	Can set 'border-image-repeat' to CSS-wide keywords: unset
-- FAIL	Can set 'border-image-repeat' to the 'repeat' keyword: repeat
-- FAIL	Can set 'border-image-repeat' to the 'round' keyword: round
-- FAIL	Can set 'border-image-repeat' to the 'space' keyword: space
-- FAIL	Can set 'border-image-repeat' to the 'stretch' keyword: stretch
+- PASS	Can set 'border-image-repeat' to the 'repeat' keyword: repeat
+- PASS	Can set 'border-image-repeat' to the 'round' keyword: round
+- PASS	Can set 'border-image-repeat' to the 'space' keyword: space
+- PASS	Can set 'border-image-repeat' to the 'stretch' keyword: stretch
 - PASS	Can set 'border-image-repeat' to var() references:  var(--A)
 - PASS	Setting 'border-image-repeat' to a flexible length: -3.14fr throws TypeError
 - PASS	Setting 'border-image-repeat' to a flexible length: 0fr throws TypeError
@@ -2978,14 +2978,14 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/border-image-slice.html
 - PASS	'border-image-slice' does not support '30 40 50 60 fill'
 - PASS	'border-image-slice' does not support '30 40 50'
 - PASS	'border-image-slice' does not support '30 fill'
-- FAIL	Can set 'border-image-slice' to a number: -3.14
-- FAIL	Can set 'border-image-slice' to a number: 0
-- FAIL	Can set 'border-image-slice' to a number: 3.14
-- FAIL	Can set 'border-image-slice' to a number: calc(2 + 3)
-- FAIL	Can set 'border-image-slice' to a percent: -3.14%
-- FAIL	Can set 'border-image-slice' to a percent: 0%
-- FAIL	Can set 'border-image-slice' to a percent: 3.14%
-- FAIL	Can set 'border-image-slice' to a percent: calc(0% + 0%)
+- PASS	Can set 'border-image-slice' to a number: -3.14
+- PASS	Can set 'border-image-slice' to a number: 0
+- PASS	Can set 'border-image-slice' to a number: 3.14
+- PASS	Can set 'border-image-slice' to a number: calc(2 + 3)
+- PASS	Can set 'border-image-slice' to a percent: -3.14%
+- PASS	Can set 'border-image-slice' to a percent: 0%
+- PASS	Can set 'border-image-slice' to a percent: 3.14%
+- PASS	Can set 'border-image-slice' to a percent: calc(0% + 0%)
 - PASS	Can set 'border-image-slice' to CSS-wide keywords: inherit
 - PASS	Can set 'border-image-slice' to CSS-wide keywords: initial
 - PASS	Can set 'border-image-slice' to CSS-wide keywords: revert
@@ -3010,12 +3010,12 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/border-image-slice.html
 - PASS	Setting 'border-image-slice' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'border-image-slice' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/border-image-source.html
-- FAIL	Can set 'border-image-source' to an image
+- PASS	Can set 'border-image-source' to an image
 - PASS	Can set 'border-image-source' to CSS-wide keywords: inherit
 - PASS	Can set 'border-image-source' to CSS-wide keywords: initial
 - PASS	Can set 'border-image-source' to CSS-wide keywords: revert
 - PASS	Can set 'border-image-source' to CSS-wide keywords: unset
-- FAIL	Can set 'border-image-source' to the 'none' keyword: none
+- PASS	Can set 'border-image-source' to the 'none' keyword: none
 - PASS	Can set 'border-image-source' to var() references:  var(--A)
 - PASS	Setting 'border-image-source' to a flexible length: -3.14fr throws TypeError
 - PASS	Setting 'border-image-source' to a flexible length: 0fr throws TypeError
@@ -3047,23 +3047,23 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/border-image-width.html
 - PASS	'border-image-width' does not support '2em 3em'
 - PASS	'border-image-width' does not support '5% 15% 10%'
 - PASS	'border-image-width' does not support '5% 2em 10% auto'
-- FAIL	Can set 'border-image-width' to a length: -3.14em
-- FAIL	Can set 'border-image-width' to a length: 0px
-- FAIL	Can set 'border-image-width' to a length: 3.14cm
-- FAIL	Can set 'border-image-width' to a length: calc(0em + 0px)
-- FAIL	Can set 'border-image-width' to a number: -3.14
-- FAIL	Can set 'border-image-width' to a number: 0
-- FAIL	Can set 'border-image-width' to a number: 3.14
-- FAIL	Can set 'border-image-width' to a number: calc(2 + 3)
-- FAIL	Can set 'border-image-width' to a percent: -3.14%
-- FAIL	Can set 'border-image-width' to a percent: 0%
-- FAIL	Can set 'border-image-width' to a percent: 3.14%
-- FAIL	Can set 'border-image-width' to a percent: calc(0% + 0%)
+- PASS	Can set 'border-image-width' to a length: -3.14em
+- PASS	Can set 'border-image-width' to a length: 0px
+- PASS	Can set 'border-image-width' to a length: 3.14cm
+- PASS	Can set 'border-image-width' to a length: calc(0em + 0px)
+- PASS	Can set 'border-image-width' to a number: -3.14
+- PASS	Can set 'border-image-width' to a number: 0
+- PASS	Can set 'border-image-width' to a number: 3.14
+- PASS	Can set 'border-image-width' to a number: calc(2 + 3)
+- PASS	Can set 'border-image-width' to a percent: -3.14%
+- PASS	Can set 'border-image-width' to a percent: 0%
+- PASS	Can set 'border-image-width' to a percent: 3.14%
+- PASS	Can set 'border-image-width' to a percent: calc(0% + 0%)
 - PASS	Can set 'border-image-width' to CSS-wide keywords: inherit
 - PASS	Can set 'border-image-width' to CSS-wide keywords: initial
 - PASS	Can set 'border-image-width' to CSS-wide keywords: revert
 - PASS	Can set 'border-image-width' to CSS-wide keywords: unset
-- FAIL	Can set 'border-image-width' to the 'auto' keyword: auto
+- PASS	Can set 'border-image-width' to the 'auto' keyword: auto
 - PASS	Can set 'border-image-width' to var() references:  var(--A)
 - PASS	Setting 'border-image-width' to a flexible length: -3.14fr throws TypeError
 - PASS	Setting 'border-image-width' to a flexible length: 0fr throws TypeError
@@ -4165,16 +4165,16 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/column-rule-style.html
 - PASS	Can set 'column-rule-style' to CSS-wide keywords: initial
 - PASS	Can set 'column-rule-style' to CSS-wide keywords: revert
 - PASS	Can set 'column-rule-style' to CSS-wide keywords: unset
-- FAIL	Can set 'column-rule-style' to the 'dashed' keyword: dashed
-- FAIL	Can set 'column-rule-style' to the 'dotted' keyword: dotted
-- FAIL	Can set 'column-rule-style' to the 'double' keyword: double
-- FAIL	Can set 'column-rule-style' to the 'groove' keyword: groove
-- FAIL	Can set 'column-rule-style' to the 'hidden' keyword: hidden
-- FAIL	Can set 'column-rule-style' to the 'inset' keyword: inset
-- FAIL	Can set 'column-rule-style' to the 'none' keyword: none
-- FAIL	Can set 'column-rule-style' to the 'outset' keyword: outset
-- FAIL	Can set 'column-rule-style' to the 'ridge' keyword: ridge
-- FAIL	Can set 'column-rule-style' to the 'solid' keyword: solid
+- PASS	Can set 'column-rule-style' to the 'dashed' keyword: dashed
+- PASS	Can set 'column-rule-style' to the 'dotted' keyword: dotted
+- PASS	Can set 'column-rule-style' to the 'double' keyword: double
+- PASS	Can set 'column-rule-style' to the 'groove' keyword: groove
+- PASS	Can set 'column-rule-style' to the 'hidden' keyword: hidden
+- PASS	Can set 'column-rule-style' to the 'inset' keyword: inset
+- PASS	Can set 'column-rule-style' to the 'none' keyword: none
+- PASS	Can set 'column-rule-style' to the 'outset' keyword: outset
+- PASS	Can set 'column-rule-style' to the 'ridge' keyword: ridge
+- PASS	Can set 'column-rule-style' to the 'solid' keyword: solid
 - PASS	Can set 'column-rule-style' to var() references:  var(--A)
 - PASS	Setting 'column-rule-style' to a flexible length: -3.14fr throws TypeError
 - PASS	Setting 'column-rule-style' to a flexible length: 0fr throws TypeError
@@ -4203,24 +4203,24 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/column-rule-style.html
 - PASS	Setting 'column-rule-style' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'column-rule-style' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/column-rule-width.html
-- PASS	'column-rule-width' does not support '2px'
-- PASS	'column-rule-width' does not support '3px'
+- FAIL	'column-rule-width' does not support '2px'
+- FAIL	'column-rule-width' does not support '3px'
 - FAIL	'column-rule-width' does not support '4px, 5px'
-- PASS	'column-rule-width' does not support 'medium'
-- PASS	'column-rule-width' does not support 'thick'
+- FAIL	'column-rule-width' does not support 'medium'
+- FAIL	'column-rule-width' does not support 'thick'
 - FAIL	'column-rule-width' does not support 'thin, medium, thick'
-- PASS	'column-rule-width' does not support 'thin'
-- FAIL	Can set 'column-rule-width' to a length: -3.14em
-- FAIL	Can set 'column-rule-width' to a length: 0px
-- FAIL	Can set 'column-rule-width' to a length: 3.14cm
-- FAIL	Can set 'column-rule-width' to a length: calc(0em + 0px)
+- FAIL	'column-rule-width' does not support 'thin'
+- PASS	Can set 'column-rule-width' to a length: -3.14em
+- PASS	Can set 'column-rule-width' to a length: 0px
+- PASS	Can set 'column-rule-width' to a length: 3.14cm
+- PASS	Can set 'column-rule-width' to a length: calc(0em + 0px)
 - PASS	Can set 'column-rule-width' to CSS-wide keywords: inherit
 - PASS	Can set 'column-rule-width' to CSS-wide keywords: initial
 - PASS	Can set 'column-rule-width' to CSS-wide keywords: revert
 - PASS	Can set 'column-rule-width' to CSS-wide keywords: unset
-- FAIL	Can set 'column-rule-width' to the 'medium' keyword: medium
-- FAIL	Can set 'column-rule-width' to the 'thick' keyword: thick
-- FAIL	Can set 'column-rule-width' to the 'thin' keyword: thin
+- PASS	Can set 'column-rule-width' to the 'medium' keyword: medium
+- PASS	Can set 'column-rule-width' to the 'thick' keyword: thick
+- PASS	Can set 'column-rule-width' to the 'thin' keyword: thin
 - PASS	Can set 'column-rule-width' to var() references:  var(--A)
 - PASS	Setting 'column-rule-width' to a flexible length: -3.14fr throws TypeError
 - PASS	Setting 'column-rule-width' to a flexible length: 0fr throws TypeError

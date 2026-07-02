@@ -318,7 +318,6 @@ const unsupportedComputedProperties = new Set([
   'border-image-width',
   'border-image-outset',
   'border-image-repeat',
-  'border-image-source',
   'column-rule-width',
   'column-rule-style',
   'clip-path',
@@ -345,7 +344,7 @@ function shouldFallbackToCSSStyleValue(property: string, value: string, isComput
   if (isComputed && cornerRadiusProperties.has(propLower)) {
     return true;
   }
-  return unsupportedComputedProperties.has(propLower);
+  return isComputed && unsupportedComputedProperties.has(propLower);
 }
 
 function getComputedBorderWidth(element: Element, property: string, style: CSSStyleDeclaration): string {
