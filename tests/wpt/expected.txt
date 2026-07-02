@@ -708,9 +708,9 @@ OK	/css/css-typed-om/stylevalue-serialization/cssMathValue.tentative.html
 - PASS	CSSMathMin with pixel arguments serializes correctly
 - PASS	CSSMathNegate nested inside a CSSMathValue serializes correctly
 - PASS	CSSMathNegate serializes correctly
-- FAIL	CSSMathProduct containing a CSSMathInvert after first value serializes correctly
+- PASS	CSSMathProduct containing a CSSMathInvert after first value serializes correctly
 - PASS	CSSMathProduct nested inside a CSSMathValue serializes correctly
-- FAIL	CSSMathProduct with a CSSMathInvert as first value serializes correctly
+- PASS	CSSMathProduct with a CSSMathInvert as first value serializes correctly
 - PASS	CSSMathProduct with more than one argument serializes correctly
 - PASS	CSSMathProduct with one argument serializes correctly
 - PASS	CSSMathSum containing a CSSMathNegate after first value serializes correctly

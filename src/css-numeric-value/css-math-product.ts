@@ -52,44 +52,43 @@ export class CSSMathProduct extends CSSMathValue {
       s += 'calc(';
     }
 
-    const numerator: CSSNumericValue[] = [];
-    const denominator: CSSNumericValue[] = [];
+    const values = Array.from(this.values).map(toCanonical);
+    const unitValues: { val: CSSNumericValue; index: number }[] = [];
+    const otherValues: { val: CSSNumericValue; index: number }[] = [];
 
-    for (const val of this.values) {
-      const canonical = toCanonical(val);
-      if (canonical instanceof CSSMathInvert) {
-        denominator.push((canonical as any).value);
+    for (let i = 0; i < values.length; i++) {
+      const val = values[i]!;
+      if (val instanceof CSSMathValue) {
+        otherValues.push({ val, index: i });
       } else {
-        numerator.push(canonical);
+        unitValues.push({ val, index: i });
       }
     }
 
-    numerator.sort(compareTerms);
-    denominator.sort(compareTerms);
+    unitValues.sort((a, b) => compareTerms(a.val, b.val));
 
-    if (numerator.length === 0) {
-      s += '1';
-    } else {
-      s += numerator[0]!._serialize(true, false);
-      for (let i = 1; i < numerator.length; i++) {
-        s += ' * ';
-        s += numerator[i]!._serialize(true, false);
+    const processedValues: CSSNumericValue[] = new Array(values.length);
+    for (const item of otherValues) {
+      processedValues[item.index] = item.val;
+    }
+    let unitIdx = 0;
+    for (let i = 0; i < processedValues.length; i++) {
+      if (processedValues[i] === undefined) {
+        processedValues[i] = unitValues[unitIdx]!.val;
+        unitIdx++;
       }
     }
 
-    if (denominator.length > 0) {
-      s += ' / ';
-      const wrapDenominator = denominator.length > 1;
-      if (wrapDenominator) {
-        s += '(';
-      }
-      s += denominator[0]!._serialize(true, false);
-      for (let i = 1; i < denominator.length; i++) {
+    s += processedValues[0]!._serialize(true, false);
+
+    for (let i = 1; i < processedValues.length; i++) {
+      const val = processedValues[i]!;
+      if (val instanceof CSSMathInvert) {
+        s += ' / ';
+        s += val.value._serialize(true, false);
+      } else {
         s += ' * ';
-        s += denominator[i]!._serialize(true, false);
-      }
-      if (wrapDenominator) {
-        s += ')';
+        s += val._serialize(true, false);
       }
     }
 

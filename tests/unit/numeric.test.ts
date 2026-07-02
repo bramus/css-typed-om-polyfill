@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CSSNumericValue, CSSUnitValue, CSSMathSum, CSSMathProduct, CSSMathNegate } from '../../src/css-numeric-value';
+import { CSSNumericValue, CSSUnitValue, CSSMathSum, CSSMathProduct, CSSMathNegate, CSSMathInvert } from '../../src/css-numeric-value';
 
 describe('CSSUnitValue and Type Arithmetic', () => {
   it('should resolve types correctly', () => {
@@ -116,3 +116,26 @@ describe('Equality (equals)', () => {
     expect(px1.equals(px2)).toBe(false);
   });
 });
+
+describe('CSSMathProduct Serialization', () => {
+  it('should serialize CSSMathProduct with CSSMathInvert correctly', () => {
+    // WPT: CSSMathProduct with a CSSMathInvert as first value
+    // new CSSMathProduct(new CSSMathInvert(1), 2, 3) -> calc((1 / 1) * 2 * 3)
+    const wpt1 = new CSSMathProduct(new CSSMathInvert(1), 2, 3);
+    expect(wpt1.toString()).toBe('calc((1 / 1) * 2 * 3)');
+
+    // WPT: CSSMathProduct containing a CSSMathInvert after first value
+    // new CSSMathProduct(1, new CSSMathInvert(2), 3) -> calc(1 / 2 * 3)
+    const wpt2 = new CSSMathProduct(1, new CSSMathInvert(2), 3);
+    expect(wpt2.toString()).toBe('calc(1 / 2 * 3)');
+
+    // Regression: CSSMathInvert with 0 parameter and nested
+    const regression = new CSSMathProduct(new CSSUnitValue(1, 'deg'), new CSSMathInvert(0));
+    expect(regression.toString()).toBe('calc(1deg / 0)');
+
+    // Also check if simple sorting works
+    const simpleSort = new CSSMathProduct(new CSSUnitValue(90, 'deg'), 2);
+    expect(simpleSort.toString()).toBe('calc(2 * 90deg)');
+  });
+});
+
