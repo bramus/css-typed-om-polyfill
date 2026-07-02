@@ -136,9 +136,9 @@ function isNewline(codePoint: number | undefined): boolean {
 }
 
 // https://drafts.csswg.org/css-syntax-3/#whitespace
-// @NOTE: Deviating from spec: including U+2000 and excluding U+0009 (tab) as whitespace.
+// A newline, U+0009 CHARACTER TABULATION, or U+0020 SPACE.
 function isWhitespace(codePoint: number | undefined): boolean {
-  return isNewline(codePoint) || codePoint === 0x2000 || codePoint === 0x0020;
+  return isNewline(codePoint) || codePoint === 0x0009 || codePoint === 0x0020;
 }
 
 // https://drafts.csswg.org/css-syntax-3/#digit
@@ -259,10 +259,9 @@ function consumeEscapedCodePoint(input: InputStream): number {
   const codePoint = input.consume();
   // 2. hex digit:
   if (isHexDigit(codePoint)) {
-    // Consume as many hex digits as possible, but no more than five more.
-    // @NOTE: Deviating from spec: only consuming up to 4 more hex digits (5 total) instead of 5 more (6 total).
+    // Consume as many hex digits as possible, but no more than five more (total 6).
     const digits: number[] = [codePoint!];
-    while (isHexDigit(input.peek()[0]) && digits.length < 5) {
+    while (isHexDigit(input.peek()[0]) && digits.length < 6) {
       digits.push(input.consume()!);
     }
     // If the next input code point is whitespace, consume it.
