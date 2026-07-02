@@ -9,14 +9,18 @@ export class CSSUnitValue extends CSSNumericValue {
   // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssunitvalue-cssunitvalue
   constructor(value: number, unit: string) {
     super();
+    // @NOTE: WebIDL type checks.
     if (typeof value !== 'number' || isNaN(value)) {
       throw new TypeError('CSSUnitValue value must be a number');
     }
     if (typeof unit !== 'string') {
       throw new TypeError('CSSUnitValue unit must be a string');
     }
+    // 1. Set this's value to value.
     this._value = value;
+    // 2. Set this's unit to unit (case-insensitively).
     this._unit = unit.toLowerCase();
+    // 3. If unit is not a valid CSS unit, throw a TypeError.
     if (!createAType(this._unit)) {
       throw new TypeError(`Unknown unit: ${unit}`);
     }
@@ -46,8 +50,9 @@ export class CSSUnitValue extends CSSNumericValue {
     return this._unit;
   }
 
-  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssunitvalue-type
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-type
   type(): CSSNumericType {
+    // @NOTE: Returning a CSSNumericType representing the unit.
     return createAType(this.unit)!;
   }
 

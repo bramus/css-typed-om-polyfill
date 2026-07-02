@@ -135,7 +135,14 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // 1. Let rectified be a list of CSSNumericValueS, initially empty.
+    // 2. For each val in values:
+    //    1. If val is a double, append new CSSUnitValue(val, "number") to rectified.
+    //    2. Otherwise (if val is a CSSNumericValue), append val to rectified.
     const rectifiedValues = values.map(toNumericValue);
+
+    // 3. Let sum be a new CSSMathSum whose values are this and the items in rectified.
+    // @NOTE: Deviating from spec to eagerly flatten Sum values and simplify if possible.
     const allValues: CSSNumericValue[] = [];
     if (this instanceof CSSMathSumClass || (this as any).operator === 'sum') {
       allValues.push(...(this as any).values);
@@ -144,6 +151,7 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     }
     allValues.push(...rectifiedValues);
 
+    // @NOTE: Deviating from spec to eagerly simplify sum of same-unit CSSUnitValues.
     if (allValues.every(v => v instanceof CSSUnitValueClass)) {
       const units = allValues.map(v => (v as any).unit);
       const firstUnit = units[0];
@@ -153,6 +161,8 @@ export abstract class CSSNumericValue extends CSSStyleValue {
       }
     }
 
+    // 4. If sum is invalid (as determined by the CSSMathSum constructor), throw a TypeError.
+    // @NOTE: Performing type check inline before construction.
     let currentType = allValues[0]!.type();
     for (let i = 1; i < allValues.length; i++) {
       const nextType = allValues[i]!.type();
@@ -163,6 +173,8 @@ export abstract class CSSNumericValue extends CSSStyleValue {
       currentType = addedType;
     }
 
+    // 5. Return sum, simplified.
+    // @NOTE: Returning CSSMathSum, assuming it is as simplified as possible at this point.
     return new CSSMathSumClass(...allValues);
   }
 
@@ -171,8 +183,19 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // 1. Let rectified be a list of CSSNumericValueS, initially empty.
+    // 2. For each val in values:
+    //    1. If val is a double, append new CSSUnitValue(val, "number") to rectified.
+    //    2. Otherwise (if val is a CSSNumericValue), append val to rectified.
     const rectified = values.map(toNumericValue);
+    // 3. Let negated be a list of CSSNumericValueS, initially empty.
+    // 4. For each val in rectified:
+    //    1. Let neg be new CSSMathNegate(val).
+    //    2. Append neg, simplified, to negated.
+    // @NOTE: mapNegate performs the simplification (e.g. double negation, negating UnitValue).
     const negated = mapNegate(rectified);
+    // 5. Let sum be this.add(...negated).
+    // 6. Return sum.
     return this.add(...negated);
   }
 
@@ -181,7 +204,14 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // 1. Let rectified be a list of CSSNumericValueS, initially empty.
+    // 2. For each val in values:
+    //    1. If val is a double, append new CSSUnitValue(val, "number") to rectified.
+    //    2. Otherwise (if val is a CSSNumericValue), append val to rectified.
     const rectifiedValues = values.map(toNumericValue);
+
+    // 3. Let product be a new CSSMathProduct whose values are this and the items in rectified.
+    // @NOTE: Deviating from spec to eagerly flatten Product values and simplify if possible.
     const allValues: CSSNumericValue[] = [];
     if (this instanceof CSSMathProductClass || (this as any).operator === 'product') {
       allValues.push(...(this as any).values);
@@ -190,11 +220,13 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     }
     allValues.push(...rectifiedValues);
 
+    // @NOTE: Deviating from spec to eagerly simplify product of numbers.
     if (allValues.every(v => v instanceof CSSUnitValueClass && (v as any).unit === 'number')) {
       const product = allValues.reduce((acc, v) => acc * (v as any).value, 1);
       return new CSSUnitValueClass(product, 'number');
     }
 
+    // @NOTE: Deviating from spec to eagerly simplify product of one dimension and numbers.
     const nonNumberValues = allValues.filter(v => !(v instanceof CSSUnitValueClass && (v as any).unit === 'number'));
     if (nonNumberValues.length === 1 && allValues.every(v => v instanceof CSSUnitValueClass)) {
       const unit = (nonNumberValues[0] as any).unit;
@@ -202,6 +234,8 @@ export abstract class CSSNumericValue extends CSSStyleValue {
       return new CSSUnitValueClass(product, unit);
     }
 
+    // 4. If product is invalid (as determined by the CSSMathProduct constructor), throw a TypeError.
+    // @NOTE: Performing type check inline before construction.
     let currentType = allValues[0]!.type();
     for (let i = 1; i < allValues.length; i++) {
       const nextType = allValues[i]!.type();
@@ -212,6 +246,8 @@ export abstract class CSSNumericValue extends CSSStyleValue {
       currentType = multipliedType;
     }
 
+    // 5. Return product, simplified.
+    // @NOTE: Returning CSSMathProduct, assuming it is as simplified as possible at this point.
     return new CSSMathProductClass(...allValues);
   }
 
@@ -220,8 +256,19 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // 1. Let rectified be a list of CSSNumericValueS, initially empty.
+    // 2. For each val in values:
+    //    1. If val is a double, append new CSSUnitValue(val, "number") to rectified.
+    //    2. Otherwise (if val is a CSSNumericValue), append val to rectified.
     const rectified = values.map(toNumericValue);
+    // 3. Let inverted be a list of CSSNumericValueS, initially empty.
+    // 4. For each val in rectified:
+    //    1. Let inv be new CSSMathInvert(val).
+    //    2. Append inv, simplified, to inverted.
+    // @NOTE: mapInvert performs the simplification (e.g. double inversion, inverting numbers).
     const inverted = mapInvert(rectified);
+    // 5. Let product be this.mul(...inverted).
+    // 6. Return product.
     return this.mul(...inverted);
   }
 
@@ -230,7 +277,14 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // 1. Let rectified be a list of CSSNumericValueS, initially empty.
+    // 2. For each val in values:
+    //    1. If val is a double, append new CSSUnitValue(val, "number") to rectified.
+    //    2. Otherwise (if val is a CSSNumericValue), append val to rectified.
     const rectifiedValues = values.map(toNumericValue);
+
+    // 3. Let min be a new CSSMathMin whose values are this and the items in rectified.
+    // @NOTE: Deviating from spec to eagerly flatten Min values and simplify if possible.
     const allValues: CSSNumericValue[] = [];
     if (this instanceof CSSMathMinClass || (this as any).operator === 'min') {
       allValues.push(...(this as any).values);
@@ -239,6 +293,7 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     }
     allValues.push(...rectifiedValues);
 
+    // @NOTE: Deviating from spec to eagerly simplify min of same-unit CSSUnitValues.
     if (allValues.every(v => v instanceof CSSUnitValueClass)) {
       const units = allValues.map(v => (v as any).unit);
       const firstUnit = units[0];
@@ -248,6 +303,8 @@ export abstract class CSSNumericValue extends CSSStyleValue {
       }
     }
 
+    // 4. If min is invalid (as determined by the CSSMathMin constructor), throw a TypeError.
+    // @NOTE: Performing type check inline before construction.
     let currentType = allValues[0]!.type();
     for (let i = 1; i < allValues.length; i++) {
       const nextType = allValues[i]!.type();
@@ -258,6 +315,8 @@ export abstract class CSSNumericValue extends CSSStyleValue {
       currentType = addedType;
     }
 
+    // 5. Return min, simplified.
+    // @NOTE: Returning CSSMathMin, assuming it is as simplified as possible at this point.
     return new CSSMathMinClass(...allValues);
   }
 
@@ -266,7 +325,14 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // 1. Let rectified be a list of CSSNumericValueS, initially empty.
+    // 2. For each val in values:
+    //    1. If val is a double, append new CSSUnitValue(val, "number") to rectified.
+    //    2. Otherwise (if val is a CSSNumericValue), append val to rectified.
     const rectifiedValues = values.map(toNumericValue);
+
+    // 3. Let max be a new CSSMathMax whose values are this and the items in rectified.
+    // @NOTE: Deviating from spec to eagerly flatten Max values and simplify if possible.
     const allValues: CSSNumericValue[] = [];
     if (this instanceof CSSMathMaxClass || (this as any).operator === 'max') {
       allValues.push(...(this as any).values);
@@ -275,6 +341,7 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     }
     allValues.push(...rectifiedValues);
 
+    // @NOTE: Deviating from spec to eagerly simplify max of same-unit CSSUnitValues.
     if (allValues.every(v => v instanceof CSSUnitValueClass)) {
       const units = allValues.map(v => (v as any).unit);
       const firstUnit = units[0];
@@ -284,6 +351,8 @@ export abstract class CSSNumericValue extends CSSStyleValue {
       }
     }
 
+    // 4. If max is invalid (as determined by the CSSMathMax constructor), throw a TypeError.
+    // @NOTE: Performing type check inline before construction.
     let currentType = allValues[0]!.type();
     for (let i = 1; i < allValues.length; i++) {
       const nextType = allValues[i]!.type();
@@ -294,6 +363,8 @@ export abstract class CSSNumericValue extends CSSStyleValue {
       currentType = addedType;
     }
 
+    // 5. Return max, simplified.
+    // @NOTE: Returning CSSMathMax, assuming it is as simplified as possible at this point.
     return new CSSMathMaxClass(...allValues);
   }
 
@@ -302,12 +373,22 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // 1. Let values be the items in values.
+    // 2. Let rectified be a list of CSSNumericValueS, initially empty.
+    // 3. For each val in values:
+    //    1. If val is a double, append new CSSUnitValue(val, "number") to rectified.
+    //    2. Otherwise (if val is a CSSNumericValue), append val to rectified.
     const numerics = values.map(toNumericValue);
+    // 4. If rectified is empty, return true.
+    // @NOTE: The loop below naturally handles empty rectified by not executing and returning true.
+    // 5. For each val in rectified:
+    //    1. If this and val are not the same CSSNumericValue, return false.
     for (const val of numerics) {
       if (!equalNumericValue(this, val)) {
         return false;
       }
     }
+    // 6. Return true.
     return true;
   }
 
@@ -316,6 +397,13 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // @NOTE: Delegating to helper function which implements the spec algorithm:
+    // 1. Let sum be this, converted to a sum of member units.
+    // 2. If sum is null, throw a TypeError.
+    // 3. If sum has more than one value, throw a TypeError.
+    // 4. Let val be the single value in sum.
+    // 5. If val's unit is not unit, throw a TypeError.
+    // 6. Return val.
     return to(this, unit);
   }
 
@@ -324,6 +412,15 @@ export abstract class CSSNumericValue extends CSSStyleValue {
     if (!(this instanceof CSSNumericValue)) {
       throw new TypeError("Value of 'this' is not a CSSNumericValue");
     }
+    // @NOTE: Delegating to helper function which implements the spec algorithm:
+    // 1. Let sum be this, converted to a sum of member units.
+    // 2. If sum is null, throw a TypeError.
+    // 3. If units is empty:
+    //    1. Sort sum's values by their unit, lexicographically.
+    //    2. Return sum.
+    // 4. If units contains any duplicate values, throw a TypeError.
+    // 5. If any member of units is not a valid CSS unit, throw a SyntaxError.
+    // ...
     return toSum(this, ...units);
   }
 }
@@ -377,6 +474,8 @@ export function applyPercentHint(type: CSSNumericType, hint: string): CSSNumeric
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssnumericvalue-add-two-types
 export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType | null {
+  // 1. Let t1 and t2 be the two CSSNumericTypes.
+  // 2. Let finalType be a new CSSNumericType, initially empty.
   const finalType = createEmptyType();
   
   const h1 = t1.percentHint;
@@ -385,18 +484,23 @@ export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType
   let type1 = { ...t1 };
   let type2 = { ...t2 };
   
+  // 3. If both t1 and t2 have a percent hint, and they are different, return failure.
   if (h1 && h2 && h1 !== h2) {
     return null;
   }
+  // 4. If t1 has a percent hint, apply the percent hint to t2.
   if (h1 && !h2) {
     type2 = applyPercentHint(type2, h1);
-  } else if (h2 && !h1) {
+  }
+  // 5. If t2 has a percent hint, apply the percent hint to t1.
+  else if (h2 && !h1) {
     type1 = applyPercentHint(type1, h2);
   }
   
   const cleanType1 = { ...type1, percentHint: undefined };
   const cleanType2 = { ...type2, percentHint: undefined };
   
+  // 6. If t1 and t2 have the same type, set finalType to that type.
   if (typesEqual(cleanType1, cleanType2)) {
     Object.assign(finalType, type1);
     finalType.percentHint = type1.percentHint || type2.percentHint;
@@ -408,15 +512,19 @@ export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType
   const hasOther1 = hasOtherThanPercent(type1);
   const hasOther2 = hasOtherThanPercent(type2);
   
+  // 7. If one of t1 or t2 contains a non-zero percent, and the other contains at least one non-zero entry other than percent:
   if ((hasPercent1 || hasPercent2) && (hasOther1 || hasOther2)) {
+    //    1. For each base type other than percent:
     const baseTypesOtherThanPercent = ["length", "angle", "time", "frequency", "resolution", "flex"];
     for (const hint of baseTypesOtherThanPercent) {
+      //       1. Apply a percent hint of that base type to both t1 and t2.
       const provType1 = applyPercentHint({ ...type1 }, hint);
       const provType2 = applyPercentHint({ ...type2 }, hint);
       
       const cleanProv1 = { ...provType1, percentHint: undefined };
       const cleanProv2 = { ...provType2, percentHint: undefined };
       
+      //       2. If the resulting types are the same, return the type, with a percent hint of that base type.
       if (typesEqual(cleanProv1, cleanProv2)) {
         Object.assign(finalType, provType1);
         finalType.percentHint = hint as any;
@@ -425,20 +533,27 @@ export function addTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType
     }
   }
   
+  // 8. Return failure.
   return null;
 }
 
 // https://drafts.css-houdini.org/css-typed-om-1/#cssnumericvalue-multiply-two-types
 export function multiplyTypes(t1: CSSNumericType, t2: CSSNumericType): CSSNumericType | null {
+  // 1. Let t1 and t2 be the two CSSNumericTypes.
+  // 2. Let result be a new CSSNumericType, initially empty.
   const result = createEmptyType();
+  // 3. For each base type in t1 and t2, set result's entry for that base type to the sum of the entries in t1 and t2.
   const keys: Exclude<keyof CSSNumericType, 'percentHint'>[] = ['length', 'angle', 'time', 'frequency', 'resolution', 'flex', 'percent'];
   for (const k of keys) {
     result[k] = (t1[k] || 0) + (t2[k] || 0);
   }
+  // 4. If both t1 and t2 have a percent hint, and they are different, return failure.
   if (t1.percentHint && t2.percentHint && t1.percentHint !== t2.percentHint) {
     return null;
   }
+  // 5. Set result's percent hint to the percent hint of t1 or t2.
   result.percentHint = t1.percentHint || t2.percentHint;
+  // 6. Return result.
   return cleanType(result);
 }
 

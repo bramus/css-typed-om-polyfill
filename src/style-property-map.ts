@@ -380,10 +380,12 @@ export class StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymapreadonly-get
   get(property: string): CSSStyleValue | undefined {
     if (!(this instanceof StylePropertyMapReadOnly)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -391,6 +393,10 @@ export class StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    // 2. Let val be the result of running "get the CSSStyleValue" for property on this.
+    // @NOTE: Deviating from spec to use inline style from attributeStyleMap as a fallback
+    // for certain properties (like corner radius or unsupported computed properties)
+    // when window.getComputedStyle doesn't provide enough information.
     if (this.element && this.element instanceof HTMLElement &&
         !cornerRadiusProperties.has(propLower) &&
         !unsupportedComputedProperties.has(propLower) &&
@@ -482,10 +488,12 @@ export class StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymapreadonly-getall
   getAll(property: string): CSSStyleValue[] {
     if (!(this instanceof StylePropertyMapReadOnly)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -493,6 +501,10 @@ export class StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    // 2. Let val be the result of running "get the list of CSSStyleValues" for property on this.
+    // @NOTE: Deviating from spec to use inline style from attributeStyleMap as a fallback
+    // for certain properties (like corner radius or unsupported computed properties)
+    // when window.getComputedStyle doesn't provide enough information.
     if (this.element && this.element instanceof HTMLElement) {
       const inlineVal = (this.element.attributeStyleMap as any).getAll(property) as CSSStyleValue[];
       if (inlineVal.length > 0 && !opacityProperties.has(propLower)) {
@@ -576,10 +588,12 @@ export class StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymapreadonly-has
   has(property: string): boolean {
     if (!(this instanceof StylePropertyMapReadOnly)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMapReadOnly");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -587,6 +601,8 @@ export class StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    // 2. If the result of running "get the CSSStyleValue" for property on this is null, return false. Otherwise, return true.
+    // @NOTE: We check if the property value is not empty string.
     return this.style.getPropertyValue(property) !== '';
   }
 
@@ -687,10 +703,12 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymapreadonly-get
   get(property: string): CSSStyleValue | undefined {
     if (!(this instanceof StylePropertyMap)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMap");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -698,6 +716,8 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    // 2. Let val be the result of running "get the CSSStyleValue" for property on this.
+    // @NOTE: Checking cache first.
     const currentValue = this.style.getPropertyValue(property);
     
     // Check cache
@@ -739,10 +759,12 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymapreadonly-getall
   getAll(property: string): CSSStyleValue[] {
     if (!(this instanceof StylePropertyMap)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMap");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -750,6 +772,8 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    // 2. Let val be the result of running "get the list of CSSStyleValues" for property on this.
+    // @NOTE: Checking cache first.
     const currentValue = this.style.getPropertyValue(property);
 
     // Check cache
@@ -783,10 +807,12 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymapreadonly-has
   has(property: string): boolean {
     if (!(this instanceof StylePropertyMap)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMap");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -794,6 +820,7 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    // 2. If the result of running "get the CSSStyleValue" for property on this is null, return false. Otherwise, return true.
     return this.style.getPropertyValue(property) !== '';
   }
 
@@ -843,10 +870,12 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymap-set
   set(property: string, ...values: (CSSStyleValue | string)[]): void {
     if (!(this instanceof StylePropertyMap)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMap");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -854,6 +883,9 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    // 2. If property is a shorthand property, throw a TypeError.
+    // @NOTE: Deviating from spec to allow setting shorthand properties under certain conditions
+    // (only with string, CSSStyleValue, CSSKeywordValue, or CSSUnparsedValue) instead of throwing TypeError immediately.
     if (isShorthandProperty(propLower)) {
       for (const val of values) {
         if (typeof val !== 'string' && 
@@ -865,11 +897,15 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
       }
     }
 
+    // @NOTE: If values is empty, we delete the property.
     if (values.length === 0) {
       this.delete(property);
       return;
     }
 
+    // 3. Let rectified be the result of running "rectify a list of CSSStyleValues" with values.
+    // 4. Run "set the CSSStyleValue" for property on this with rectified.
+    // @NOTE: validateValuesForProperty performs validation and returns the serialized string.
     const finalString = validateValuesForProperty(property, values);
     this.style.setProperty(property, finalString);
 
@@ -915,10 +951,12 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymap-append
   append(property: string, ...values: (CSSStyleValue | string)[]): void {
     if (!(this instanceof StylePropertyMap)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMap");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -926,15 +964,18 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     if (!isSupportedProperty(propLower)) {
       throw new TypeError(`Unsupported property: ${property}`);
     }
+    // 2. If property is a shorthand property, throw a TypeError.
     if (isShorthandProperty(propLower)) {
       throw new TypeError(`Cannot append to shorthand property: ${property}`);
     }
+    // 3. If property does not support list values, throw a TypeError.
     if (!listValuedProperties.has(propLower)) {
       throw new TypeError(`Property is not list-valued: ${property}`);
     }
 
     if (values.length === 0) return;
 
+    // 4. Let rectified be the result of running "rectify a list of CSSStyleValues" with values.
     for (const val of values) {
       if (val instanceof CSSUnparsedValue) {
         throw new TypeError('Cannot append CSSUnparsedValue');
@@ -948,6 +989,7 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
       throw new TypeError('Cannot append to a value containing variable references');
     }
 
+    // 5. Run "append to the CSSStyleValue" ...
     const currentValue = this.style.getPropertyValue(property);
     const cached = this._cache.get(propLower);
     
@@ -989,10 +1031,12 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
     }
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymap-delete
   delete(property: string): void {
     if (!(this instanceof StylePropertyMap)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMap");
     }
+    // 1. If property is not a valid CSS property, throw a TypeError.
     if (!property) {
       throw new TypeError('Property name cannot be null or empty');
     }
@@ -1001,14 +1045,17 @@ export class StylePropertyMap extends StylePropertyMapReadOnly {
       throw new TypeError(`Unsupported property: ${property}`);
     }
 
+    // 2. Run "delete the CSSStyleValue" ...
     this.style.removeProperty(property);
     this._cache.delete(propLower);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-stylepropertymap-clear
   clear(): void {
     if (!(this instanceof StylePropertyMap)) {
       throw new TypeError("Value of 'this' is not a StylePropertyMap");
     }
+    // 1. Clear all properties.
     this.style.cssText = '';
     this._cache.clear();
   }

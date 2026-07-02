@@ -5,12 +5,17 @@ import { CSSTransformComponent } from './css-transform-component';
 export class CSSTransformValue extends CSSStyleValue {
   private _components: CSSTransformComponent[];
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-csstransformvalue-csstransformvalue
   constructor(transforms: CSSTransformComponent[]) {
     super();
+    // 1. Let components be the items in transforms.
+    // 2. If components is empty, throw a TypeError.
     if (!Array.isArray(transforms) || transforms.length === 0) {
       throw new TypeError('CSSTransformValue constructor requires a non-empty sequence of CSSTransformComponents');
     }
+    // 3. Set the _components internal slot to components.
     this._components = [...transforms];
+    // @NOTE: Using Proxy to implement list-like indexed access and mutation.
     return new Proxy(this, {
       get(target, prop, receiver) {
         if (typeof prop === 'string') {
@@ -53,14 +58,22 @@ export class CSSTransformValue extends CSSStyleValue {
     return this._components.every(comp => comp.is2D);
   }
 
+  // https://drafts.css-houdini.org/css-typed-om-1/#dom-csstransformvalue-tomatrix
   toMatrix(): DOMMatrix {
     if (!(this instanceof CSSTransformValue)) {
       throw new TypeError("Value of 'this' is not a CSSTransformValue");
     }
+    // 1. Let matrix be a new identity DOMMatrix object.
     let matrix = new DOMMatrix();
+    // 2. For each transformComponent in this:
     for (const comp of this._components) {
+      //    1. Let componentMatrix be the result of running toMatrix() on transformComponent.
+      //    2. If componentMatrix is null, return null.
+      //    3. Multiply matrix by componentMatrix.
+      // @NOTE: multiplySelf modifies the matrix in place.
       matrix.multiplySelf(comp.toMatrix());
     }
+    // 3. Return matrix.
     return matrix;
   }
 

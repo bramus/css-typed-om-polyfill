@@ -251,21 +251,31 @@ export function createSumValue(cssNumericValue: CSSNumericValue): SumValue | nul
   }
 }
 
+// https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-to
 export function to(cssNumericValue: CSSNumericValue, unit: string): CSSUnitValue {
+  // @NOTE: Checking if unit is valid. Spec says: "If any member of units is not a valid CSS unit, throw a SyntaxError."
+  // Although this is for toSum, it is reasonable to throw SyntaxError for invalid unit in to() as well.
   const type = createAType(unit);
   if (type === null) {
     throw new DOMException("The string did not match the expected pattern.", "SyntaxError");
   }
 
+  // 1. Let sum be this, converted to a sum of member units.
   const sumValue = createSumValue(cssNumericValue);
+  // 2. If sum is null, throw a TypeError.
   if (!sumValue) {
     throw new TypeError();
   }
 
+  // 3. If sum has more than one value, throw a TypeError.
   if (sumValue.length > 1) {
     throw new TypeError("Sum has more than one item");
   }
 
+  // 4. Let val be the single value in sum.
+  // 5. If val's unit is not unit, throw a TypeError.
+  // 6. Return val.
+  // @NOTE: convertCSSUnitValue handles the conversion and returns null if units are incompatible, leading to TypeError.
   const item = convertCSSUnitValue(createCSSUnitValue(sumValue[0]!)!, unit);
   if (item === null) {
     throw new TypeError();
@@ -292,20 +302,26 @@ export function createCSSUnitValue(sumValueItem: SumValueItem): CSSUnitValue | n
 
 
 
+// https://drafts.css-houdini.org/css-typed-om-1/#dom-cssnumericvalue-tosum
 export function toSum(cssNumericValue: CSSNumericValue, ...units: string[]): CSSMathSum {
+  // 5. If any member of units is not a valid CSS unit, throw a SyntaxError.
+  // @NOTE: Performing this check early.
   if (units && units.length) {
     for (const unit of units) {
       if (createAType(unit) === null) {
         throw new DOMException(`Invalid unit: ${unit}`, 'SyntaxError');
       }
     }
+    // 4. If units contains any duplicate values, throw a TypeError.
     const uniqueUnits = new Set(units);
     if (uniqueUnits.size !== units.length) {
       throw new TypeError("Duplicate units are not allowed");
     }
   }
 
+  // 1. Let sum be this, converted to a sum of member units.
   const sum = createSumValue(cssNumericValue);
+  // 2. If sum is null, throw a TypeError.
   if (!sum) {
     throw new TypeError("Failed to create sum value");
   }
@@ -319,14 +335,22 @@ export function toSum(cssNumericValue: CSSNumericValue, ...units: string[]): CSS
     values.push(val);
   }
 
+  // 3. If units is empty:
   if (!units || units.length === 0) {
+    //    1. Sort sum's values by their unit, lexicographically.
     values.sort((a, b) => a.unit.localeCompare(b.unit));
+    //    2. Return sum.
     return new CSSMathSum(...values);
   }
 
+  // 6. Let dest be a list of CSSUnitValues, initially empty, with a value for each member of units, in the same order, with a value of 0.
   const result: CSSUnitValue[] = [];
   const remainingValues = [...values];
 
+  // 7. For each val in sum's values:
+  //    1. If there is a member of dest which val can be converted to, convert val to it, add val's value to it, and continue.
+  //    2. Otherwise, throw a TypeError.
+  // @NOTE: We iterate over target units (dest) and find matching values from sum to convert and add.
   for (const unit of units) {
     let tempValue = 0;
     for (let i = remainingValues.length - 1; i >= 0; i--) {
@@ -340,10 +364,12 @@ export function toSum(cssNumericValue: CSSNumericValue, ...units: string[]): CSS
     result.push(new CSSUnitValue(tempValue, unit));
   }
 
+  // @NOTE: If there are leftover values that couldn't be converted to any of the target units, throw TypeError.
   if (remainingValues.length > 0) {
     throw new TypeError("Leftover units that were not asked for");
   }
 
+  // 8. Return new CSSMathSum(dest).
   return new CSSMathSum(...result);
 }
 
