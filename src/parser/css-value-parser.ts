@@ -43,6 +43,9 @@ import {
   CSSOKLCH,
   CSSColor
 } from '../css-color-value';
+import transformFunctionsData from '../data/TransformFunctions.json';
+
+const transformFnNames = new Set(Object.keys(transformFunctionsData).map(k => k.toLowerCase()));
 
 const colorNames: Record<string, [number, number, number, number?]> = {
   transparent: [0, 0, 0, 0] as any,
@@ -240,11 +243,6 @@ export function parseColor(cssText: string): CSSColorValue | CSSStyleValue {
 }
 
 function isTransformValue(tokens: Token[]): boolean {
-  const transformFnNames = new Set([
-    'translate', 'translate3d', 'translatex', 'translatey', 'translatez',
-    'rotate', 'rotate3d', 'scale', 'scale3d', 'scalex', 'scaley', 'scalez',
-    'skew', 'skewx', 'skewy', 'perspective', 'matrix', 'matrix3d'
-  ]);
   return tokens.some(t => t instanceof FunctionToken && transformFnNames.has(t.value.toLowerCase()));
 }
 

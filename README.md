@@ -98,6 +98,10 @@ Or you can run them individually:
     npm run test:wpt:local
     ```
 
+## Attribution
+
+This project uses CSS metadata (properties, units, and transform functions) sourced from the [Ladybird Browser](https://github.com/LadybirdBrowser/ladybird) project (licensed under the BSD 2-Clause License). We thank the Ladybird contributors for maintaining these valuable datasets.
+
 ## License
 
 MIT

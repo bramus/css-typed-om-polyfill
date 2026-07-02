@@ -1,24 +1,22 @@
+import unitsData from './data/Units.json';
+
 // All supported units with their official case (used for CSS.* factory functions)
+const typedUnitsData = unitsData as Record<string, Record<string, {
+  "is-canonical-unit"?: boolean;
+  "number-of-canonical-unit"?: number;
+  "relative-to"?: string;
+}>>;
+
+const allUnitsFromJSON: string[] = [];
+for (const group of Object.values(typedUnitsData)) {
+  for (const unit of Object.keys(group)) {
+    allUnitsFromJSON.push(unit);
+  }
+}
+
 export const FACTORY_UNITS = [
   "number", "percent",
-  // Lengths
-  "em", "rem", "ex", "rex", "cap", "rcap", "ch", "rch", "ic", "ric", "lh", "rlh",
-  "vw", "vh", "vi", "vb", "vmin", "vmax",
-  "svw", "svh", "svi", "svb", "svmin", "svmax",
-  "lvw", "lvh", "lvi", "lvb", "lvmin", "lvmax",
-  "dvw", "dvh", "dvi", "dvb", "dvmin", "dvmax",
-  "cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax",
-  "cm", "mm", "Q", "in", "pt", "pc", "px",
-  // Angles
-  "deg", "grad", "rad", "turn",
-  // Times
-  "s", "ms",
-  // Frequencies
-  "Hz", "kHz",
-  // Resolutions
-  "dpi", "dpcm", "dppx",
-  // Flex
-  "fr"
+  ...allUnitsFromJSON
 ];
 
 export interface UnitGroup {
@@ -29,88 +27,105 @@ export interface UnitGroup {
 }
 
 // Unit groups with lowercase units for internal consistency
-export const unitGroups = {
-  fontRelativeLengths: {
-    units: new Set(["em", "rem", "ex", "rex", "cap", "rcap", "ch", "rch", "ic", "ric", "lh", "rlh"])
-  },
-  viewportRelativeLengths: {
-    units: new Set([
-      "vw", "lvw", "svw", "dvw", "vh", "lvh", "svh", "dvh", "vi", "lvi", "svi", "dvi", "vb", "lvb", "svb", "dvb",
-      "vmin", "lvmin", "svmin", "dvmin", "vmax", "lvmax", "svmax", "dvmax",
-      "cqw", "cqh", "cqi", "cqb", "cqmin", "cqmax" // Included container queries here for completeness
-    ])
-  },
-  absoluteLengths: {
-    units: new Set(["cm", "mm", "q", "in", "pt", "pc", "px"]),
-    compatible: true,
-    canonicalUnit: "px",
-    ratios: {
-      "cm": 96 / 2.54,
-      "mm": (96 / 2.54) / 10,
-      "q": (96 / 2.54) / 40,
-      "in": 96,
-      "pc": 96 / 6,
-      "pt": 96 / 72,
-      "px": 1
-    }
-  },
-  angle: {
-    units: new Set(["deg", "grad", "rad", "turn"]),
-    compatible: true,
-    canonicalUnit: "deg",
-    ratios: {
-      "deg": 1,
-      "grad": 360 / 400,
-      "rad": 180 / Math.PI,
-      "turn": 360
-    }
-  },
-  time: {
-    units: new Set(["s", "ms"]),
-    compatible: true,
-    canonicalUnit: "s",
-    ratios: {
-      "s": 1,
-      "ms": 1 / 1000
-    }
-  },
-  frequency: {
-    units: new Set(["hz", "khz"]),
-    compatible: true,
-    canonicalUnit: "hz",
-    ratios: {
-      "hz": 1,
-      "khz": 1000
-    }
-  },
-  resolution: {
-    units: new Set(["dpi", "dpcm", "dppx"]),
-    compatible: true,
-    canonicalUnit: "dppx",
-    ratios: {
-      "dpi": 1 / 96,
-      "dpcm": 2.54 / 96,
-      "dppx": 1
-    }
-  }
+export const unitGroups: {
+  fontRelativeLengths: UnitGroup;
+  viewportRelativeLengths: UnitGroup;
+  absoluteLengths: UnitGroup;
+  angle: UnitGroup;
+  time: UnitGroup;
+  frequency: UnitGroup;
+  resolution: UnitGroup;
+  [key: string]: UnitGroup;
+} = {
+  fontRelativeLengths: { units: new Set() },
+  viewportRelativeLengths: { units: new Set() },
+  absoluteLengths: { units: new Set() },
+  angle: { units: new Set() },
+  time: { units: new Set() },
+  frequency: { units: new Set() },
+  resolution: { units: new Set() },
 };
+
+const fontRelativeLengths: string[] = [];
+const viewportRelativeLengths: string[] = [];
+
+for (const [groupName, units] of Object.entries(typedUnitsData)) {
+  if (groupName === 'length') {
+    const absoluteUnits: string[] = [];
+    const absoluteRatios: Record<string, number> = {};
+    let absoluteCanonical = 'px';
+
+    for (const [unit, details] of Object.entries(units)) {
+      const unitLower = unit.toLowerCase();
+      if (details.hasOwnProperty('relative-to')) {
+        if (details['relative-to'] === 'font') {
+          fontRelativeLengths.push(unitLower);
+        } else if (details['relative-to'] === 'viewport' || details['relative-to'] === 'container') {
+          viewportRelativeLengths.push(unitLower);
+        }
+      } else {
+        // Absolute length
+        absoluteUnits.push(unitLower);
+        if (details['is-canonical-unit']) {
+          absoluteCanonical = unitLower;
+          absoluteRatios[unitLower] = 1;
+        } else if (details['number-of-canonical-unit'] !== undefined) {
+          absoluteRatios[unitLower] = details['number-of-canonical-unit'];
+        }
+      }
+    }
+
+    unitGroups.fontRelativeLengths = { units: new Set(fontRelativeLengths) };
+    unitGroups.viewportRelativeLengths = { units: new Set(viewportRelativeLengths) };
+    unitGroups.absoluteLengths = {
+      units: new Set(absoluteUnits),
+      compatible: true,
+      canonicalUnit: absoluteCanonical,
+      ratios: absoluteRatios
+    };
+  } else if (groupName !== 'flex') { // Keep flex out of unitGroups to match original behavior if needed, or we can include it. Original didn't have it.
+    const groupUnits: string[] = [];
+    const ratios: Record<string, number> = {};
+    let canonicalUnit = '';
+    let hasRatios = false;
+
+    for (const [unit, details] of Object.entries(units)) {
+      const unitLower = unit.toLowerCase();
+      groupUnits.push(unitLower);
+      if (details['is-canonical-unit']) {
+        canonicalUnit = unitLower;
+        ratios[unitLower] = 1;
+        hasRatios = true;
+      } else if (details['number-of-canonical-unit'] !== undefined) {
+        ratios[unitLower] = details['number-of-canonical-unit'];
+        hasRatios = true;
+      }
+    }
+
+    unitGroups[groupName] = {
+      units: new Set(groupUnits),
+      compatible: true,
+      ...(hasRatios ? { canonicalUnit, ratios } : {})
+    };
+  }
+}
 
 // Derived sets for quick lookup (all lowercase)
 export const LENGTH_UNITS = new Set([
-  ...unitGroups.fontRelativeLengths.units,
-  ...unitGroups.viewportRelativeLengths.units,
-  ...unitGroups.absoluteLengths.units
+  ...unitGroups['fontRelativeLengths']!.units,
+  ...unitGroups['viewportRelativeLengths']!.units,
+  ...unitGroups['absoluteLengths']!.units
 ]);
 
-export const ANGLE_UNITS = unitGroups.angle.units;
-export const TIME_UNITS = unitGroups.time.units;
-export const FREQUENCY_UNITS = unitGroups.frequency.units;
-export const RESOLUTION_UNITS = unitGroups.resolution.units;
+export const ANGLE_UNITS = unitGroups['angle']!.units;
+export const TIME_UNITS = unitGroups['time']!.units;
+export const FREQUENCY_UNITS = unitGroups['frequency']!.units;
+export const RESOLUTION_UNITS = unitGroups['resolution']!.units;
 
 export const ABSOLUTE_UNITS = new Set([
-  ...unitGroups.absoluteLengths.units,
-  ...unitGroups.angle.units,
-  ...unitGroups.time.units,
-  ...unitGroups.frequency.units,
-  ...unitGroups.resolution.units
+  ...unitGroups['absoluteLengths']!.units,
+  ...unitGroups['angle']!.units,
+  ...unitGroups['time']!.units,
+  ...unitGroups['frequency']!.units,
+  ...unitGroups['resolution']!.units
 ]);

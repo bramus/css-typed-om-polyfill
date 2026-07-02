@@ -1,40 +1,19 @@
+import propertiesData from './data/Properties.json';
+
+const typedPropertiesData = propertiesData as Record<string, {
+  multiplicity?: string;
+}>;
+
 const canonicalUnits = new Set(["px", "deg", "s", "hz", "dppx", "number", "fr"]);
 
-export const listValuedProperties = new Set([
-  'background-attachment',
-  'background-blend-mode',
-  'background-clip',
-  'background-image',
-  'background-origin',
-  'background-position',
-  'background-repeat',
-  'background-size',
-  'box-shadow',
-  'text-shadow',
-  'transition-property',
-  'transition-duration',
-  'transition-timing-function',
-  'transition-delay',
-  'animation-name',
-  'animation-duration',
-  'animation-timing-function',
-  'animation-delay',
-  'animation-iteration-count',
-  'animation-direction',
-  'animation-fill-mode',
-  'animation-play-state',
-  'font-family',
-  'font-feature-settings',
-  'font-variation-settings',
-  'mask-clip',
-  'mask-composite',
-  'mask-image',
-  'mask-mode',
-  'mask-origin',
-  'mask-position',
-  'mask-repeat',
-  'mask-size',
-]);
+export const listValuedProperties = new Set<string>();
+for (const [prop, details] of Object.entries(typedPropertiesData)) {
+  if (details.multiplicity === 'list' || details.multiplicity === 'coordinating-list') {
+    listValuedProperties.add(prop);
+  }
+}
+listValuedProperties.add('text-shadow');
+
 
 export function isCanonical(unit: string): boolean {
   return canonicalUnits.has(unit.toLowerCase());
