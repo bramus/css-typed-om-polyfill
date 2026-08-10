@@ -5,8 +5,8 @@ This polyfill brings the [CSS Typed OM Level 1 Specification](https://drafts.css
 This project is fully tested using the official [Web Platform Tests (WPT)](https://github.com/web-platform-tests/wpt).
 
 <!-- WPT_STATUS_START -->
-- PASS: 12463 / 12942
-- FAIL: 479 / 12942
+- PASS: 12461 / 13125
+- FAIL: 664 / 13125
 <!-- WPT_STATUS_END -->
 
 ## Features

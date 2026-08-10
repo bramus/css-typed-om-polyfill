@@ -721,7 +721,7 @@ OK	/css/css-typed-om/stylevalue-serialization/cssMathValue.tentative.html
 OK	/css/css-typed-om/stylevalue-serialization/cssStyleValue-cssom.html
 - PASS	CSSStyleValue from computed CSSOM serializes correctly
 - PASS	CSSStyleValue from specified CSSOM serializes correctly
-- PASS	Shorthand CSSStyleValue from computed CSSOM serializes correctly
+- FAIL	Shorthand CSSStyleValue from computed CSSOM serializes correctly
 - PASS	Shorthand CSSStyleValue from inline CSSOM serializes correctly
 OK	/css/css-typed-om/stylevalue-serialization/cssStyleValue-string.html
 - PASS	CSSStyleValue parsed from string serializes to given string
@@ -762,6 +762,7 @@ OK	/css/css-typed-om/stylevalue-serialization/cssUnparsedValue.html
 - PASS	CSSUnparsedValue containing mix of strings and variable references serializes to its tokenized contents
 - PASS	CSSUnparsedValue containing strings serializes to its tokenized contents
 - PASS	CSSUnparsedValue containing variable references serializes its tokenized contents
+- PASS	String serialization of CSSUnparsedValue should roundtrip
 OK	/css/css-typed-om/stylevalue-subclasses/cssColorValue.html
 - PASS	CSSColorValue Tests
 - PASS	CSSColorValue Tests 1
@@ -838,19 +839,58 @@ OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue-invalid.any.sharedwor
 - FAIL	Constructing CSSKeywordValue with an empty string throws a TypeError
 OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue-invalid.any.worker.html
 - FAIL	Constructing CSSKeywordValue with an empty string throws a TypeError
-OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue-value.html
+OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue-value.any.html
 - PASS	CSSKeywordValue.value can be updated to a CSS keyword
 - PASS	CSSKeywordValue.value can be updated to a CSS wide keyword
 - PASS	CSSKeywordValue.value can be updated to a string containing multiple tokens
 - PASS	CSSKeywordValue.value can be updated to a unicode string
 - PASS	CSSKeywordValue.value can be updated to an unsupported CSS keyword
 - PASS	Updating CSSKeywordValue.value with an empty string throws a TypeError
-OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue.html
+OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue-value.any.serviceworker.html
+- FAIL	CSSKeywordValue.value can be updated to a CSS keyword
+- FAIL	CSSKeywordValue.value can be updated to a CSS wide keyword
+- FAIL	CSSKeywordValue.value can be updated to a string containing multiple tokens
+- FAIL	CSSKeywordValue.value can be updated to a unicode string
+- FAIL	CSSKeywordValue.value can be updated to an unsupported CSS keyword
+- FAIL	Updating CSSKeywordValue.value with an empty string throws a TypeError
+OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue-value.any.sharedworker.html
+- FAIL	CSSKeywordValue.value can be updated to a CSS keyword
+- FAIL	CSSKeywordValue.value can be updated to a CSS wide keyword
+- FAIL	CSSKeywordValue.value can be updated to a string containing multiple tokens
+- FAIL	CSSKeywordValue.value can be updated to a unicode string
+- FAIL	CSSKeywordValue.value can be updated to an unsupported CSS keyword
+- FAIL	Updating CSSKeywordValue.value with an empty string throws a TypeError
+OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue-value.any.worker.html
+- FAIL	CSSKeywordValue.value can be updated to a CSS keyword
+- FAIL	CSSKeywordValue.value can be updated to a CSS wide keyword
+- FAIL	CSSKeywordValue.value can be updated to a string containing multiple tokens
+- FAIL	CSSKeywordValue.value can be updated to a unicode string
+- FAIL	CSSKeywordValue.value can be updated to an unsupported CSS keyword
+- FAIL	Updating CSSKeywordValue.value with an empty string throws a TypeError
+OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue.any.html
 - PASS	CSSKeywordValue can be constructed from a CSS keyword
 - PASS	CSSKeywordValue can be constructed from a CSS wide keyword
 - PASS	CSSKeywordValue can be constructed from a string containing multiple tokens
 - PASS	CSSKeywordValue can be constructed from a unicode string
 - PASS	CSSKeywordValue can be constructed from an unsupported CSS keyword
+OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue.any.serviceworker.html
+- FAIL	CSSKeywordValue can be constructed from a CSS keyword
+- FAIL	CSSKeywordValue can be constructed from a CSS wide keyword
+- FAIL	CSSKeywordValue can be constructed from a string containing multiple tokens
+- FAIL	CSSKeywordValue can be constructed from a unicode string
+- FAIL	CSSKeywordValue can be constructed from an unsupported CSS keyword
+OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue.any.sharedworker.html
+- FAIL	CSSKeywordValue can be constructed from a CSS keyword
+- FAIL	CSSKeywordValue can be constructed from a CSS wide keyword
+- FAIL	CSSKeywordValue can be constructed from a string containing multiple tokens
+- FAIL	CSSKeywordValue can be constructed from a unicode string
+- FAIL	CSSKeywordValue can be constructed from an unsupported CSS keyword
+OK	/css/css-typed-om/stylevalue-subclasses/cssKeywordValue.any.worker.html
+- FAIL	CSSKeywordValue can be constructed from a CSS keyword
+- FAIL	CSSKeywordValue can be constructed from a CSS wide keyword
+- FAIL	CSSKeywordValue can be constructed from a string containing multiple tokens
+- FAIL	CSSKeywordValue can be constructed from a unicode string
+- FAIL	CSSKeywordValue can be constructed from an unsupported CSS keyword
 OK	/css/css-typed-om/stylevalue-subclasses/cssLab.html
 - PASS	Constructing a CSSLab with css pixels for lightness throws a SyntaxError.
 - PASS	Constructing a CSSLab with CSS.number for l or alpha throws a SyntaxError
@@ -1142,7 +1182,7 @@ OK	/css/css-typed-om/stylevalue-subclasses/cssTransformComponent-toMatrix-relati
 - PASS	CSSTranslate.toMatrix() containing relative units throws TypeError
 OK	/css/css-typed-om/stylevalue-subclasses/cssTransformComponent-toMatrix.html
 - PASS	CSSMatrixComponent.toMatrix() returns correct matrix
-- PASS	CSSPerspective.toMatrix() returns correct matrix
+- FAIL	CSSPerspective.toMatrix() returns correct matrix
 - PASS	CSSRotate.toMatrix() returns correct matrix
 - PASS	CSSScale.toMatrix() returns correct matrix
 - PASS	CSSSkew.toMatrix() returns correct matrix
@@ -1166,6 +1206,7 @@ OK	/css/css-typed-om/stylevalue-subclasses/cssTranslate.tentative.html
 - PASS	Constructing a CSSTranslate with a CSSUnitValue with type other than length or percent for the coordinates throws a TypeError
 - PASS	Constructing a CSSTranslate with a percent for the Z coordinate throws a TypeError
 - PASS	CSSTranslate can be constructed from CSSMathValues
+- PASS	CSSTranslate can be constructed from mixed length-percentage CSSMathValues
 - PASS	CSSTranslate can be constructed from three length or percent coordinates
 - PASS	CSSTranslate can be constructed from two length or percent coordinates
 - PASS	CSSTranslate.x can be updated to a CSSMathValue
@@ -1184,8 +1225,14 @@ OK	/css/css-typed-om/stylevalue-subclasses/cssTranslate.tentative.html
 - PASS	Updating CSSTranslate.z to a CSSMathValue that doesn't match <length-percentage> throws a TypeError
 - PASS	Updating CSSTranslate.z to a CSSUnitValue with type other than length or percent throws a TypeError
 - PASS	Updating CSSTranslate.z to a percent throws a TypeError
-OK	/css/css-typed-om/stylevalue-subclasses/cssUnparsedValue-empty.html
+OK	/css/css-typed-om/stylevalue-subclasses/cssUnparsedValue-empty.any.html
 - PASS	Don't crash when serializing empty CSSUnparsedValue
+OK	/css/css-typed-om/stylevalue-subclasses/cssUnparsedValue-empty.any.serviceworker.html
+- FAIL	Don't crash when serializing empty CSSUnparsedValue
+OK	/css/css-typed-om/stylevalue-subclasses/cssUnparsedValue-empty.any.sharedworker.html
+- FAIL	Don't crash when serializing empty CSSUnparsedValue
+OK	/css/css-typed-om/stylevalue-subclasses/cssUnparsedValue-empty.any.worker.html
+- FAIL	Don't crash when serializing empty CSSUnparsedValue
 OK	/css/css-typed-om/stylevalue-subclasses/cssUnparsedValue-indexed-getter-setter.html
 - PASS	Can update fragment in CSSUnparsedValue to a CSSVariableReference
 - PASS	Can update fragment in CSSUnparsedValue to a String
@@ -1217,15 +1264,39 @@ OK	/css/css-typed-om/stylevalue-subclasses/cssVariableReferenceValue.html
 - PASS	CSSVariableReferenceValue can be constructed with no fallback
 - PASS	CSSVariableReferenceValue can be constructed with null fallback
 - PASS	CSSVariableReferenceValue can be constructed with valid fallback
-OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/add-two-types.tentative.html
-- PASS	Adding a type with a percent hint returns a type with the percent hint
-- PASS	Adding a type with percent 2 returns type with percent hint throws TypeError
-- PASS	Adding a type with percent returns type with percent hint
-- PASS	Adding two types with different non-null percent hints throws TypeError
-- PASS	Adding two types with empty maps with returns empty map
-- PASS	Adding two types with the same nonzero values returns same type
-- PASS	Adding two types with the same percent hint returns a type with the percent hint
-OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/arithmetic.tentative.html
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/add-two-types.tentative.any.html
+- PASS	Adding a squared length type and a percent type in the CSSMathClamp constructor throws TypeError
+- PASS	Adding a squared length type and a percent type in the CSSMathMax constructor throws TypeError
+- PASS	Adding a squared length type and a percent type in the CSSMathMin constructor throws TypeError
+- PASS	Adding a squared length type and a percent type in the CSSMathSum constructor throws TypeError
+- PASS	Adding a type containing percent in the CSSMathClamp constructor returns a type with a percent hint
+- PASS	Adding a type containing percent in the CSSMathMax constructor returns a type with a percent hint
+- PASS	Adding a type containing percent in the CSSMathMin constructor returns a type with a percent hint
+- PASS	Adding a type containing percent in the CSSMathSum constructor returns a type with a percent hint
+- PASS	Adding a type with a percent hint in the CSSMathClamp constructor returns a type with the same percent hint
+- PASS	Adding a type with a percent hint in the CSSMathMax constructor returns a type with the same percent hint
+- PASS	Adding a type with a percent hint in the CSSMathMin constructor returns a type with the same percent hint
+- PASS	Adding a type with a percent hint in the CSSMathSum constructor returns a type with the same percent hint
+- PASS	Adding two non-addable types in the CSSMathClamp constructor throws TypeError
+- PASS	Adding two non-addable types in the CSSMathMax constructor throws TypeError
+- PASS	Adding two non-addable types in the CSSMathMin constructor throws TypeError
+- PASS	Adding two non-addable types in the CSSMathSum constructor throws TypeError
+- PASS	Adding two types with empty maps in the CSSMathClamp constructor returns an empty map
+- PASS	Adding two types with empty maps in the CSSMathMax constructor returns an empty map
+- PASS	Adding two types with empty maps in the CSSMathMin constructor returns an empty map
+- PASS	Adding two types with empty maps in the CSSMathSum constructor returns an empty map
+- PASS	Adding two types with the same base type in the CSSMathClamp constructor returns the same type
+- PASS	Adding two types with the same base type in the CSSMathMax constructor returns the same type
+- PASS	Adding two types with the same base type in the CSSMathMin constructor returns the same type
+- PASS	Adding two types with the same base type in the CSSMathSum constructor returns the same type
+- PASS	Adding two types with the same percent hint in the CSSMathClamp constructor returns a type with that percent hint
+- PASS	Adding two types with the same percent hint in the CSSMathMax constructor returns a type with that percent hint
+- PASS	Adding two types with the same percent hint in the CSSMathMin constructor returns a type with that percent hint
+- PASS	Adding two types with the same percent hint in the CSSMathSum constructor returns a type with that percent hint
+ERROR	/css/css-typed-om/stylevalue-subclasses/numeric-objects/add-two-types.tentative.any.serviceworker.html
+ERROR	/css/css-typed-om/stylevalue-subclasses/numeric-objects/add-two-types.tentative.any.sharedworker.html
+ERROR	/css/css-typed-om/stylevalue-subclasses/numeric-objects/add-two-types.tentative.any.worker.html
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/arithmetic.tentative.any.html
 - PASS	Calling CSSMathMax.max with number CSSUnitValues simplifies to a CSSUnitValue
 - PASS	Calling CSSMathMin.min with number CSSUnitValues simplifies to a CSSUnitValue
 - PASS	Calling CSSMathProduct.div with number CSSUnitValues simplifies to a CSSUnitValue
@@ -1293,7 +1364,10 @@ OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/arithmetic.tentative.
 - PASS	CSSNumericValue.min should throw TypeError when the types are different.
 - PASS	CSSNumericValue.mul should throw TypeError when the types are different.
 - PASS	CSSNumericValue.sub should throw TypeError when the types are different.
-OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/create-a-type.tentative.html
+ERROR	/css/css-typed-om/stylevalue-subclasses/numeric-objects/arithmetic.tentative.any.serviceworker.html
+ERROR	/css/css-typed-om/stylevalue-subclasses/numeric-objects/arithmetic.tentative.any.sharedworker.html
+ERROR	/css/css-typed-om/stylevalue-subclasses/numeric-objects/arithmetic.tentative.any.worker.html
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/create-a-type.tentative.any.html
 - PASS	Creating a type from "number" returns {}
 - PASS	Creating a type from "percent" returns { percent: 1 }
 - PASS	Creating a type from <angle> returns { angle: 1 }
@@ -1302,13 +1376,61 @@ OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/create-a-type.tentati
 - PASS	Creating a type from <length> returns { length: 1 }
 - PASS	Creating a type from <resolution> returns { resolution: 1 }
 - PASS	Creating a type from <time> returns { time: 1 }
-OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathInvert-type.html
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/create-a-type.tentative.any.serviceworker.html
+- FAIL	Creating a type from "number" returns {}
+- FAIL	Creating a type from "percent" returns { percent: 1 }
+- FAIL	Creating a type from <angle> returns { angle: 1 }
+- FAIL	Creating a type from <flex> returns { flex: 1 }
+- FAIL	Creating a type from <frequency> returns { frequency: 1 }
+- FAIL	Creating a type from <length> returns { length: 1 }
+- FAIL	Creating a type from <resolution> returns { resolution: 1 }
+- FAIL	Creating a type from <time> returns { time: 1 }
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/create-a-type.tentative.any.sharedworker.html
+- FAIL	Creating a type from "number" returns {}
+- FAIL	Creating a type from "percent" returns { percent: 1 }
+- FAIL	Creating a type from <angle> returns { angle: 1 }
+- FAIL	Creating a type from <flex> returns { flex: 1 }
+- FAIL	Creating a type from <frequency> returns { frequency: 1 }
+- FAIL	Creating a type from <length> returns { length: 1 }
+- FAIL	Creating a type from <resolution> returns { resolution: 1 }
+- FAIL	Creating a type from <time> returns { time: 1 }
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/create-a-type.tentative.any.worker.html
+- FAIL	Creating a type from "number" returns {}
+- FAIL	Creating a type from "percent" returns { percent: 1 }
+- FAIL	Creating a type from <angle> returns { angle: 1 }
+- FAIL	Creating a type from <flex> returns { flex: 1 }
+- FAIL	Creating a type from <frequency> returns { frequency: 1 }
+- FAIL	Creating a type from <length> returns { length: 1 }
+- FAIL	Creating a type from <resolution> returns { resolution: 1 }
+- FAIL	Creating a type from <time> returns { time: 1 }
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathInvert-type.any.html
 - PASS	Inverting a type negates all its exponents
 - PASS	Inverting a type with empty map returns the empty map
 - PASS	Inverting an inverted type returns the original type
-OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathNegate-type.html
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathInvert-type.any.serviceworker.html
+- FAIL	Inverting a type negates all its exponents
+- FAIL	Inverting a type with empty map returns the empty map
+- FAIL	Inverting an inverted type returns the original type
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathInvert-type.any.sharedworker.html
+- FAIL	Inverting a type negates all its exponents
+- FAIL	Inverting a type with empty map returns the empty map
+- FAIL	Inverting an inverted type returns the original type
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathInvert-type.any.worker.html
+- FAIL	Inverting a type negates all its exponents
+- FAIL	Inverting a type with empty map returns the empty map
+- FAIL	Inverting an inverted type returns the original type
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathNegate-type.any.html
 - PASS	Negating a type returns the same type
 - PASS	Negating a type with empty map returns the empty map
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathNegate-type.any.serviceworker.html
+- FAIL	Negating a type returns the same type
+- FAIL	Negating a type with empty map returns the empty map
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathNegate-type.any.sharedworker.html
+- FAIL	Negating a type returns the same type
+- FAIL	Negating a type with empty map returns the empty map
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathNegate-type.any.worker.html
+- FAIL	Negating a type returns the same type
+- FAIL	Negating a type with empty map returns the empty map
 OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathValue.tentative.html
 - PASS	Constructing a CSSMathClamp with different unit arguments throws a SyntaxError
 - PASS	Constructing a CSSMathClamp with less than 3 arguments throws a SyntaxError
@@ -1333,7 +1455,7 @@ OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssMathValue.tentativ
 - PASS	CSSMathSum can be constructed from a single number CSSUnitValue
 - PASS	CSSMathSum can be constructed from more than one number CSSUnitValue
 - PASS	CSSMathSum.operator is readonly
-OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssnumericvalue-multiply-two-types.tentative.html
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssnumericvalue-multiply-two-types.tentative.any.html
 - PASS	Multiplying a type with no exponents is a no-op
 - PASS	Multiplying a type with percent hint applies the percent hint
 - PASS	Multiplying two types respects the sign of the exponents
@@ -1341,6 +1463,30 @@ OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssnumericvalue-multi
 - PASS	Multiplying two types with different non-null percent hints throws TypeError
 - PASS	Multiplying two types with same base types adds exponents
 - PASS	Multiplying two types with same percent hint applies the percent hint
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssnumericvalue-multiply-two-types.tentative.any.serviceworker.html
+- FAIL	Multiplying a type with no exponents is a no-op
+- FAIL	Multiplying a type with percent hint applies the percent hint
+- FAIL	Multiplying two types respects the sign of the exponents
+- FAIL	Multiplying two types with different base types adds exponents
+- FAIL	Multiplying two types with different non-null percent hints throws TypeError
+- FAIL	Multiplying two types with same base types adds exponents
+- FAIL	Multiplying two types with same percent hint applies the percent hint
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssnumericvalue-multiply-two-types.tentative.any.sharedworker.html
+- FAIL	Multiplying a type with no exponents is a no-op
+- FAIL	Multiplying a type with percent hint applies the percent hint
+- FAIL	Multiplying two types respects the sign of the exponents
+- FAIL	Multiplying two types with different base types adds exponents
+- FAIL	Multiplying two types with different non-null percent hints throws TypeError
+- FAIL	Multiplying two types with same base types adds exponents
+- FAIL	Multiplying two types with same percent hint applies the percent hint
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssnumericvalue-multiply-two-types.tentative.any.worker.html
+- FAIL	Multiplying a type with no exponents is a no-op
+- FAIL	Multiplying a type with percent hint applies the percent hint
+- FAIL	Multiplying two types respects the sign of the exponents
+- FAIL	Multiplying two types with different base types adds exponents
+- FAIL	Multiplying two types with different non-null percent hints throws TypeError
+- FAIL	Multiplying two types with same base types adds exponents
+- FAIL	Multiplying two types with same percent hint applies the percent hint
 OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssUnitValue-value.html
 - PASS	CSSUnitValue.value can be updated to a different value
 OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/cssUnitValue.html
@@ -1450,7 +1596,7 @@ OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/parse.tentative.html
 - PASS	Parsing min() is successful
 - PASS	Parsing product of multiple min() is successful
 - PASS	Parsing sum of multiple min() is successful
-OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/to.tentative.html
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/to.tentative.any.html
 - PASS	Converting a complex expression to a single unit
 - PASS	Converting a CSSMathClamp to a single unit returns the clamped value
 - PASS	Converting a CSSMathClamp to a single unit with different units throws a TypeError
@@ -1469,6 +1615,67 @@ OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/to.tentative.html
 - PASS	Converting a CSSUnitValue to an invalid unit throws SyntaxError
 - PASS	Converting a CSSUnitValue to its canonical unit returns correct value
 - PASS	Converting a CSSUnitValue to its own unit returns itself
+- PASS	CSSUnitValue is a CSSNumericValue and a CSSStyleValue
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/to.tentative.any.serviceworker.html
+- FAIL	Converting a complex expression to a single unit
+- FAIL	Converting a CSSMathClamp to a single unit returns the clamped value
+- FAIL	Converting a CSSMathClamp to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathInvert to a single unit inverts its value and units
+- FAIL	Converting a CSSMathMax to a single unit finds the max value
+- FAIL	Converting a CSSMathMax to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathMin to a single unit finds the min value
+- FAIL	Converting a CSSMathMin to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathNegate to a single unit negates its value
+- FAIL	Converting a CSSMathProduct to a single unit multiplies the values
+- FAIL	Converting a CSSMathSum to a single unit adds the values
+- FAIL	Converting a CSSNumericValue with invalid sum value throws TypeError
+- FAIL	Converting a CSSNumericValue with sum value containing more than one value throws TypeError
+- FAIL	Converting a CSSUnitValue to a compatible unit returns correct value
+- FAIL	Converting a CSSUnitValue to an incompatible unit throws TypeError
+- FAIL	Converting a CSSUnitValue to an invalid unit throws SyntaxError
+- FAIL	Converting a CSSUnitValue to its canonical unit returns correct value
+- FAIL	Converting a CSSUnitValue to its own unit returns itself
+- FAIL	CSSUnitValue is a CSSNumericValue and a CSSStyleValue
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/to.tentative.any.sharedworker.html
+- FAIL	Converting a complex expression to a single unit
+- FAIL	Converting a CSSMathClamp to a single unit returns the clamped value
+- FAIL	Converting a CSSMathClamp to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathInvert to a single unit inverts its value and units
+- FAIL	Converting a CSSMathMax to a single unit finds the max value
+- FAIL	Converting a CSSMathMax to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathMin to a single unit finds the min value
+- FAIL	Converting a CSSMathMin to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathNegate to a single unit negates its value
+- FAIL	Converting a CSSMathProduct to a single unit multiplies the values
+- FAIL	Converting a CSSMathSum to a single unit adds the values
+- FAIL	Converting a CSSNumericValue with invalid sum value throws TypeError
+- FAIL	Converting a CSSNumericValue with sum value containing more than one value throws TypeError
+- FAIL	Converting a CSSUnitValue to a compatible unit returns correct value
+- FAIL	Converting a CSSUnitValue to an incompatible unit throws TypeError
+- FAIL	Converting a CSSUnitValue to an invalid unit throws SyntaxError
+- FAIL	Converting a CSSUnitValue to its canonical unit returns correct value
+- FAIL	Converting a CSSUnitValue to its own unit returns itself
+- FAIL	CSSUnitValue is a CSSNumericValue and a CSSStyleValue
+OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/to.tentative.any.worker.html
+- FAIL	Converting a complex expression to a single unit
+- FAIL	Converting a CSSMathClamp to a single unit returns the clamped value
+- FAIL	Converting a CSSMathClamp to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathInvert to a single unit inverts its value and units
+- FAIL	Converting a CSSMathMax to a single unit finds the max value
+- FAIL	Converting a CSSMathMax to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathMin to a single unit finds the min value
+- FAIL	Converting a CSSMathMin to a single unit with different units throws a TypeError
+- FAIL	Converting a CSSMathNegate to a single unit negates its value
+- FAIL	Converting a CSSMathProduct to a single unit multiplies the values
+- FAIL	Converting a CSSMathSum to a single unit adds the values
+- FAIL	Converting a CSSNumericValue with invalid sum value throws TypeError
+- FAIL	Converting a CSSNumericValue with sum value containing more than one value throws TypeError
+- FAIL	Converting a CSSUnitValue to a compatible unit returns correct value
+- FAIL	Converting a CSSUnitValue to an incompatible unit throws TypeError
+- FAIL	Converting a CSSUnitValue to an invalid unit throws SyntaxError
+- FAIL	Converting a CSSUnitValue to its canonical unit returns correct value
+- FAIL	Converting a CSSUnitValue to its own unit returns itself
+- FAIL	CSSUnitValue is a CSSNumericValue and a CSSStyleValue
 OK	/css/css-typed-om/stylevalue-subclasses/numeric-objects/toSum.tentative.html
 - PASS	Converting a CSSNumericValue to a sum with an incompatible unit throws TypeError
 - PASS	Converting a CSSNumericValue to a sum with invalid units throws SyntaxError
@@ -1788,11 +1995,11 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/alignment-baseline.html
 - PASS	Can set 'alignment-baseline' to CSS-wide keywords: initial
 - PASS	Can set 'alignment-baseline' to CSS-wide keywords: revert
 - PASS	Can set 'alignment-baseline' to CSS-wide keywords: unset
-- PASS	Can set 'alignment-baseline' to the 'alphabetic' keyword: alphabetic
+- FAIL	Can set 'alignment-baseline' to the 'alphabetic' keyword: alphabetic
 - PASS	Can set 'alignment-baseline' to the 'baseline' keyword: baseline
-- PASS	Can set 'alignment-baseline' to the 'central' keyword: central
-- PASS	Can set 'alignment-baseline' to the 'ideographic' keyword: ideographic
-- PASS	Can set 'alignment-baseline' to the 'mathematical' keyword: mathematical
+- FAIL	Can set 'alignment-baseline' to the 'central' keyword: central
+- FAIL	Can set 'alignment-baseline' to the 'ideographic' keyword: ideographic
+- FAIL	Can set 'alignment-baseline' to the 'mathematical' keyword: mathematical
 - PASS	Can set 'alignment-baseline' to the 'middle' keyword: middle
 - PASS	Can set 'alignment-baseline' to the 'text-bottom' keyword: text-bottom
 - PASS	Can set 'alignment-baseline' to the 'text-top' keyword: text-top
@@ -2514,14 +2721,14 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/background-repeat.html
 - PASS	Setting 'background-repeat' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/background-size.html
 - PASS	'background-size' does not support '200px 100px'
-- PASS	Can set 'background-size' to a length: -3.14em
-- PASS	Can set 'background-size' to a length: 0px
-- PASS	Can set 'background-size' to a length: 3.14cm
-- PASS	Can set 'background-size' to a length: calc(0em + 0px)
-- PASS	Can set 'background-size' to a percent: -3.14%
-- PASS	Can set 'background-size' to a percent: 0%
-- PASS	Can set 'background-size' to a percent: 3.14%
-- PASS	Can set 'background-size' to a percent: calc(0% + 0%)
+- FAIL	Can set 'background-size' to a length: -3.14em
+- FAIL	Can set 'background-size' to a length: 0px
+- FAIL	Can set 'background-size' to a length: 3.14cm
+- FAIL	Can set 'background-size' to a length: calc(0em + 0px)
+- FAIL	Can set 'background-size' to a percent: -3.14%
+- FAIL	Can set 'background-size' to a percent: 0%
+- FAIL	Can set 'background-size' to a percent: 3.14%
+- FAIL	Can set 'background-size' to a percent: calc(0% + 0%)
 - PASS	Can set 'background-size' to CSS-wide keywords: inherit
 - PASS	Can set 'background-size' to CSS-wide keywords: initial
 - PASS	Can set 'background-size' to CSS-wide keywords: revert
@@ -4057,8 +4264,8 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/color.html
 - PASS	Setting 'color' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'color' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/column-count.html
-- PASS	Can set 'column-count' to a number: -3.14
-- PASS	Can set 'column-count' to a number: 0
+- FAIL	Can set 'column-count' to a number: -3.14
+- FAIL	Can set 'column-count' to a number: 0
 - PASS	Can set 'column-count' to a number: 3.14
 - FAIL	Can set 'column-count' to a number: calc(2 + 3)
 - PASS	Can set 'column-count' to CSS-wide keywords: inherit
@@ -11598,15 +11805,15 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/text-autospace.html
 - PASS	Setting 'text-autospace' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'text-autospace' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/text-box-trim.html
-- PASS	Can set 'text-box-trim' to CSS-wide keywords: inherit
-- PASS	Can set 'text-box-trim' to CSS-wide keywords: initial
-- PASS	Can set 'text-box-trim' to CSS-wide keywords: revert
-- PASS	Can set 'text-box-trim' to CSS-wide keywords: unset
-- PASS	Can set 'text-box-trim' to the 'none' keyword: none
-- PASS	Can set 'text-box-trim' to the 'trim-both' keyword: trim-both
-- PASS	Can set 'text-box-trim' to the 'trim-end' keyword: trim-end
-- PASS	Can set 'text-box-trim' to the 'trim-start' keyword: trim-start
-- PASS	Can set 'text-box-trim' to var() references:  var(--A)
+- FAIL	Can set 'text-box-trim' to CSS-wide keywords: inherit
+- FAIL	Can set 'text-box-trim' to CSS-wide keywords: initial
+- FAIL	Can set 'text-box-trim' to CSS-wide keywords: revert
+- FAIL	Can set 'text-box-trim' to CSS-wide keywords: unset
+- FAIL	Can set 'text-box-trim' to the 'none' keyword: none
+- FAIL	Can set 'text-box-trim' to the 'trim-both' keyword: trim-both
+- FAIL	Can set 'text-box-trim' to the 'trim-end' keyword: trim-end
+- FAIL	Can set 'text-box-trim' to the 'trim-start' keyword: trim-start
+- FAIL	Can set 'text-box-trim' to var() references:  var(--A)
 - PASS	Setting 'text-box-trim' to a flexible length: -3.14fr throws TypeError
 - PASS	Setting 'text-box-trim' to a flexible length: 0fr throws TypeError
 - PASS	Setting 'text-box-trim' to a flexible length: 1fr throws TypeError
@@ -12477,7 +12684,7 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/transform-style.html
 - PASS	Setting 'transform-style' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'transform-style' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/transform.html
-- PASS	'transform' does not support 'matrix(sibling-index(), 2, 3, 4, 5 ,6)'
+- FAIL	'transform' does not support 'matrix(sibling-index(), 2, 3, 4, 5 ,6)'
 - FAIL	Can set 'transform' to a transform: perspective(calc(10em))
 - FAIL	Can set 'transform' to a transform: translate(50%, 50%)
 - FAIL	Can set 'transform' to a transform: translate3d(0px, 1px, 2px) translate(0px, 1px) rotate3d(1, 2, 3, 45deg) rotate(45deg) scale3d(1, 2, 3) scale(1, 2) skew(1deg, 1deg) skewX(1deg) skewY(45deg) perspective(1px) matrix3d(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16) matrix(1, 2, 3, 4, 5, 6)
