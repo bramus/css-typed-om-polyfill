@@ -143,66 +143,6 @@ export function isShorthandProperty(property: string): boolean {
   return dummy.length > 1;
 }
 
-export function splitCommated(str: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let depth = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i]!;
-    if (char === '(') depth++;
-    else if (char === ')') depth--;
-    
-    if (char === ',' && depth === 0) {
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  if (current) {
-    result.push(current.trim());
-  }
-  return result;
-}
 
-export function serializeComputedBackground(style: CSSStyleDeclaration): string {
-  const images = splitCommated(style.getPropertyValue('background-image') || 'none');
-  const positions = splitCommated(style.getPropertyValue('background-position') || '0% 0%');
-  const sizes = splitCommated(style.getPropertyValue('background-size') || 'auto');
-  const repeats = splitCommated(style.getPropertyValue('background-repeat') || 'repeat');
-  const attachments = splitCommated(style.getPropertyValue('background-attachment') || 'scroll');
-  const origins = splitCommated(style.getPropertyValue('background-origin') || 'padding-box');
-  const clips = splitCommated(style.getPropertyValue('background-clip') || 'border-box');
-  const color = style.getPropertyValue('background-color') || 'transparent';
 
-  const layers: string[] = [];
-  const numLayers = images.length;
 
-  for (let i = 0; i < numLayers; i++) {
-    const parts: string[] = [];
-    
-    if (i === numLayers - 1) {
-      parts.push(color);
-    }
-
-    parts.push(images[i] || 'none');
-    parts.push(repeats[i] || 'repeat');
-    parts.push(attachments[i] || 'scroll');
-    
-    const pos = positions[i] || '0% 0%';
-    const size = sizes[i] || 'auto';
-    parts.push(`${pos} / ${size}`);
-
-    const origin = origins[i] || 'padding-box';
-    const clip = clips[i] || 'border-box';
-    if (origin === clip) {
-      parts.push(origin);
-    } else {
-      parts.push(`${origin} ${clip}`);
-    }
-
-    layers.push(parts.join(' '));
-  }
-
-  return layers.join(', ');
-}

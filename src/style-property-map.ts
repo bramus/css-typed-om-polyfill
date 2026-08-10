@@ -1,7 +1,7 @@
 import { CSSStyleValue, CSSUnparsedValue, CSSKeywordValue } from './css-style-value';
 import { CSSUnitValue, CSSMathValue } from './css-numeric-value';
 import { simplifyCalculation } from './parser/simplify-calculation';
-import { getDummyStyle, isSupportedProperty, isShorthandProperty, serializeComputedBackground, splitCommated, listValuedProperties } from './utils';
+import { getDummyStyle, isSupportedProperty, isShorthandProperty, listValuedProperties } from './utils';
 import { LENGTH_UNITS, ANGLE_UNITS, TIME_UNITS, FREQUENCY_UNITS, RESOLUTION_UNITS } from './units';
 
 
@@ -250,65 +250,11 @@ function isPendingSubstitution(style: CSSStyleDeclaration, property: string): bo
   return false;
 }
 
-function hasExplicitMinSize(element: Element, property: string): boolean {
-  const hasValue = (style: CSSStyleDeclaration) => {
-    const val = style.getPropertyValue(property);
-    return val !== '' && val !== 'auto';
-  };
-  if (element instanceof HTMLElement) {
-    if (hasValue(element.style)) return true;
-  }
-  const doc = element.ownerDocument;
-  if (!doc) return false;
-  const sheets = doc.styleSheets;
-  for (let i = 0; i < sheets.length; i++) {
-    const sheet = sheets[i]!;
-    try {
-      const rules = sheet.cssRules;
-      for (let j = 0; j < rules.length; j++) {
-        const rule = rules[j]!;
-        if (rule instanceof CSSStyleRule) {
-          if (element.matches(rule.selectorText)) {
-            if (hasValue(rule.style)) {
-              return true;
-            }
-          }
-        }
-      }
-    } catch (e) {
-      // Ignore
-    }
-  }
-  return false;
-}
-
-const opacityProperties = new Set([
-  'opacity',
-  'fill-opacity',
-  'stroke-opacity',
-  'flood-opacity',
-  'stop-opacity'
-]);
-
-const borderWidthProperties = new Set([
-  'border-top-width',
-  'border-left-width',
-  'border-right-width',
-  'border-bottom-width'
-]);
-
 const cornerRadiusProperties = new Set([
   'border-top-left-radius',
   'border-top-right-radius',
   'border-bottom-left-radius',
   'border-bottom-right-radius'
-]);
-
-const alwaysResolveProperties = new Set([
-  'font-size',
-  'word-spacing',
-  'line-height',
-  'vertical-align'
 ]);
 
 
@@ -347,27 +293,7 @@ function shouldFallbackToCSSStyleValue(property: string, value: string, isComput
   return isComputed && unsupportedComputedProperties.has(propLower);
 }
 
-function getComputedBorderWidth(element: Element, property: string, style: CSSStyleDeclaration): string {
-  if (!(element instanceof HTMLElement)) {
-    return style.getPropertyValue(property);
-  }
-  const suffix = property.split('-')[1]; // top, left, right, bottom
-  const styleProp = `border-${suffix}-style`;
-  const currentStyle = window.getComputedStyle(element).getPropertyValue(styleProp);
-  if (currentStyle === 'none' || currentStyle === 'hidden') {
-    const inlineStyle = element.style.getPropertyValue(styleProp);
-    const inlinePriority = element.style.getPropertyPriority(styleProp);
-    element.style.setProperty(styleProp, 'solid', 'important');
-    const resolved = window.getComputedStyle(element).getPropertyValue(property);
-    if (inlineStyle) {
-      element.style.setProperty(styleProp, inlineStyle, inlinePriority);
-    } else {
-      element.style.removeProperty(styleProp);
-    }
-    return resolved;
-  }
-  return style.getPropertyValue(property);
-}
+
 
 const privateToken = Symbol.for('css-typed-om-polyfill-private-token');
 
@@ -393,66 +319,7 @@ export class StylePropertyMapReadOnly {
       throw new TypeError(`Unsupported property: ${property}`);
     }
     // 2. Let val be the result of running "get the CSSStyleValue" for property on this.
-    // @NOTE: Deviating from spec to use inline style from attributeStyleMap as a fallback
-    // for certain properties (like corner radius or unsupported computed properties)
-    // when window.getComputedStyle doesn't provide enough information.
-    if (this.element && this.element instanceof HTMLElement &&
-        !cornerRadiusProperties.has(propLower) &&
-        !unsupportedComputedProperties.has(propLower) &&
-        !alwaysResolveProperties.has(propLower)) {
-      const inlineVal = (this.element.attributeStyleMap as any).get(property) as CSSStyleValue | undefined;
-      if (inlineVal && !opacityProperties.has(propLower)) {
-        if (inlineVal instanceof CSSUnitValue && inlineVal.unit === 'percent') {
-          if (inlineVal.value < 0 && shouldWrapInCalc(property, inlineVal)) {
-            return new CSSUnitValue(0, 'percent');
-          }
-          return inlineVal;
-        }
-        if (inlineVal instanceof CSSMathValue) {
-          const type = inlineVal.type();
-          if (type.percent || type.percentHint) {
-            try {
-              const simplified = simplifyCalculation(inlineVal);
-              if (simplified instanceof CSSUnitValue && simplified.unit === 'percent') {
-                if (simplified.value < 0 && shouldWrapInCalc(property, simplified)) {
-                  return new CSSUnitValue(0, 'percent');
-                }
-                return simplified;
-              }
-              return simplified;
-            } catch (e) {
-              // Ignore
-            }
-          }
-        }
-        if (inlineVal instanceof CSSKeywordValue) {
-          const valLower = inlineVal.value.toLowerCase();
-          if (valLower === 'currentcolor' || valLower === 'auto') {
-            return inlineVal;
-          }
-        }
-      }
-    }
-    let value = propLower === 'background' ? serializeComputedBackground(this.style) : this.style.getPropertyValue(property);
-    if (propLower === 'background-size' && value) {
-      const parts = splitCommated(value);
-      const simplified = parts.map(p => {
-        if (p.endsWith(' auto')) {
-          return p.slice(0, -5);
-        }
-        return p;
-      });
-      value = simplified.join(', ');
-    }
-
-    if (this.element && borderWidthProperties.has(propLower)) {
-      value = getComputedBorderWidth(this.element, property, this.style);
-    }
-    if (this.element && (propLower === 'min-width' || propLower === 'min-height') && value === '0px') {
-      if (!hasExplicitMinSize(this.element, propLower)) {
-        value = 'auto';
-      }
-    }
+    let value = this.style.getPropertyValue(property);
     if (!value) {
       if (this.element && isShorthandProperty(propLower)) {
         const val = new CSSStyleValue('', privateToken);
@@ -501,63 +368,7 @@ export class StylePropertyMapReadOnly {
       throw new TypeError(`Unsupported property: ${property}`);
     }
     // 2. Let val be the result of running "get the list of CSSStyleValues" for property on this.
-    // @NOTE: Deviating from spec to use inline style from attributeStyleMap as a fallback
-    // for certain properties (like corner radius or unsupported computed properties)
-    // when window.getComputedStyle doesn't provide enough information.
-    if (this.element && this.element instanceof HTMLElement) {
-      const inlineVal = (this.element.attributeStyleMap as any).getAll(property) as CSSStyleValue[];
-      if (inlineVal.length > 0 && !opacityProperties.has(propLower)) {
-        const first = inlineVal[0];
-        if (first instanceof CSSUnitValue && first.unit === 'percent') {
-          if (first.value < 0 && shouldWrapInCalc(property, first)) {
-            return [new CSSUnitValue(0, 'percent')];
-          }
-          return inlineVal;
-        }
-        if (first instanceof CSSMathValue) {
-          const type = first.type();
-          if (type.percent || type.percentHint) {
-            try {
-              return inlineVal.map(v => {
-                if (v instanceof CSSMathValue) {
-                  const simplified = simplifyCalculation(v);
-                  if (simplified instanceof CSSUnitValue && simplified.unit === 'percent') {
-                    if (simplified.value < 0 && shouldWrapInCalc(property, simplified)) {
-                      return new CSSUnitValue(0, 'percent');
-                    }
-                    return simplified;
-                  }
-                  return simplified;
-                }
-                if (v instanceof CSSUnitValue && v.unit === 'percent') {
-                  if (v.value < 0 && shouldWrapInCalc(property, v)) {
-                    return new CSSUnitValue(0, 'percent');
-                  }
-                }
-                return v;
-              });
-            } catch (e) {
-              // Ignore
-            }
-          }
-        }
-        if (first instanceof CSSKeywordValue) {
-          const valLower = first.value.toLowerCase();
-          if (valLower === 'currentcolor' || valLower === 'auto') {
-            return inlineVal;
-          }
-        }
-      }
-    }
     let value = this.style.getPropertyValue(property);
-    if (this.element && borderWidthProperties.has(propLower)) {
-      value = getComputedBorderWidth(this.element, property, this.style);
-    }
-    if (this.element && (propLower === 'min-width' || propLower === 'min-height') && value === '0px') {
-      if (!hasExplicitMinSize(this.element, propLower)) {
-        value = 'auto';
-      }
-    }
     if (!value) {
       if (this.element && isShorthandProperty(propLower)) {
         const val = new CSSStyleValue('', privateToken);
