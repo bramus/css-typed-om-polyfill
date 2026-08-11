@@ -1995,11 +1995,11 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/alignment-baseline.html
 - PASS	Can set 'alignment-baseline' to CSS-wide keywords: initial
 - PASS	Can set 'alignment-baseline' to CSS-wide keywords: revert
 - PASS	Can set 'alignment-baseline' to CSS-wide keywords: unset
-- FAIL	Can set 'alignment-baseline' to the 'alphabetic' keyword: alphabetic
+- PASS	Can set 'alignment-baseline' to the 'alphabetic' keyword: alphabetic
 - PASS	Can set 'alignment-baseline' to the 'baseline' keyword: baseline
-- FAIL	Can set 'alignment-baseline' to the 'central' keyword: central
-- FAIL	Can set 'alignment-baseline' to the 'ideographic' keyword: ideographic
-- FAIL	Can set 'alignment-baseline' to the 'mathematical' keyword: mathematical
+- PASS	Can set 'alignment-baseline' to the 'central' keyword: central
+- PASS	Can set 'alignment-baseline' to the 'ideographic' keyword: ideographic
+- PASS	Can set 'alignment-baseline' to the 'mathematical' keyword: mathematical
 - PASS	Can set 'alignment-baseline' to the 'middle' keyword: middle
 - PASS	Can set 'alignment-baseline' to the 'text-bottom' keyword: text-bottom
 - PASS	Can set 'alignment-baseline' to the 'text-top' keyword: text-top
@@ -4264,8 +4264,8 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/color.html
 - PASS	Setting 'color' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'color' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/column-count.html
-- FAIL	Can set 'column-count' to a number: -3.14
-- FAIL	Can set 'column-count' to a number: 0
+- PASS	Can set 'column-count' to a number: -3.14
+- PASS	Can set 'column-count' to a number: 0
 - PASS	Can set 'column-count' to a number: 3.14
 - FAIL	Can set 'column-count' to a number: calc(2 + 3)
 - PASS	Can set 'column-count' to CSS-wide keywords: inherit
