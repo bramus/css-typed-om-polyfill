@@ -38,10 +38,71 @@ function isAtTargetCommit(current, target) {
   return current === target || current.startsWith(target) || target.startsWith(current);
 }
 
+function checkWptAgeAndWarn() {
+  try {
+    const currentCommit = getCurrentCommit();
+    if (!currentCommit) return;
+
+    // Get commit timestamp
+    const timestampStr = execSync(`git show -s --format=%ct ${currentCommit}`, {
+      cwd: checkoutDir,
+      stdio: 'pipe',
+      timeout: 3000
+    }).toString().trim();
+    const timestamp = parseInt(timestampStr, 10);
+    if (!timestamp) return;
+
+    const commitDate = new Date(timestamp * 1000);
+    const now = new Date();
+    const ageInMs = now.getTime() - commitDate.getTime();
+    const ageInDays = Math.max(0, Math.floor(ageInMs / (1000 * 60 * 60 * 24)));
+
+    // Check remote master HEAD
+    const remoteOutput = execSync(`git ls-remote origin refs/heads/master`, {
+      cwd: checkoutDir,
+      stdio: 'pipe',
+      timeout: 5000
+    }).toString().trim();
+
+    const remoteMasterCommit = remoteOutput.split(/\s+/)[0];
+    if (!remoteMasterCommit) return;
+
+    const isBehind = !remoteMasterCommit.startsWith(currentCommit) && !currentCommit.startsWith(remoteMasterCommit);
+
+    if (isBehind) {
+      const shortCurrent = currentCommit.slice(0, 9);
+      const shortRemote = remoteMasterCommit.slice(0, 9);
+      const isoUtc = commitDate.toISOString().replace('.000Z', 'Z');
+
+      let colorCode = '\x1b[90m'; // Neutral (gray)
+      let prefix = 'ℹ [WPT Notice]';
+
+      if (ageInDays > 30) {
+        colorCode = '\x1b[31m'; // Red (> 30 days)
+        prefix = '⚠ [WPT Warning]';
+      } else if (ageInDays > 15) {
+        colorCode = '\x1b[33m'; // Orange/Yellow (> 15 days)
+        prefix = '⚠ [WPT Warning]';
+      }
+
+      const reset = '\x1b[0m';
+      const bold = '\x1b[1m';
+
+      console.log('');
+      console.log(`${colorCode}${bold}${prefix} The local WPT test suite (${shortCurrent}, ${isoUtc}, ${ageInDays} days old) is running behind the latest commit (${shortRemote}).${reset}`);
+      console.log(`${colorCode}Run ${bold}npm run test:wpt:update${reset}${colorCode} to update the tests.${reset}`);
+      console.log('');
+    }
+  } catch (e) {
+    // Ignore network or git remote check errors so testing is never blocked
+  }
+}
+
 if (existsSync(checkoutDir)) {
   const current = getCurrentCommit();
   if (isAtTargetCommit(current, targetCommit)) {
     console.log(`WPT checkout is already at commit ${targetCommit} (${current.slice(0, 9)})`);
+    checkWptAgeAndWarn();
     exit(0);
   }
 
@@ -49,6 +110,7 @@ if (existsSync(checkoutDir)) {
   try {
     execSync(`git checkout --force ${targetCommit}`, { ...execEnv, cwd: checkoutDir });
     console.log(`Checked out WPT commit ${targetCommit}`);
+    checkWptAgeAndWarn();
     exit(0);
   } catch (e) {
     console.log(`Commit ${targetCommit} not found locally, fetching...`);
@@ -86,4 +148,5 @@ if (!fetched) {
 
 execSync(`git checkout --force ${targetCommit}`, { ...execEnv, cwd: checkoutDir });
 console.log(`Checked out WPT commit ${targetCommit}`);
+checkWptAgeAndWarn();
 exit(0);
