@@ -5,6 +5,7 @@ This polyfill brings the [CSS Typed OM Level 1 Specification](https://drafts.css
 This project is fully tested using the official [Web Platform Tests (WPT)](https://github.com/web-platform-tests/wpt).
 
 <!-- WPT_STATUS_START -->
+- WPT Commit: [`e134993e2`](https://github.com/web-platform-tests/wpt/tree/e134993e2) (*2026-08-19T09:52:00Z*)
 - PASS: 12476 / 13134
 - FAIL: 658 / 13134
 <!-- WPT_STATUS_END -->
@@ -96,6 +97,9 @@ Or you can run them individually:
     
     # Run WPT tests locally for debugging
     npm run test:wpt:local
+    
+    # Update WPT to latest version
+    npm run test:wpt:update
     ```
 
 ## License

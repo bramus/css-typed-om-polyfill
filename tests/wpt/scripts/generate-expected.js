@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,9 +87,29 @@ try {
     const endIndex = readmeContent.indexOf(endTag);
     
     if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+      const commitFilePath = path.join(__dirname, '..', 'wpt-commit.txt');
+      let commitLine = '';
+      if (fs.existsSync(commitFilePath)) {
+        const commitHash = fs.readFileSync(commitFilePath, 'utf8').trim();
+        if (commitHash) {
+          let dateStr = '';
+          const srcDir = path.join(__dirname, '..', 'src');
+          if (fs.existsSync(srcDir)) {
+            try {
+              const timestamp = execSync(`git show -s --format=%ct ${commitHash}`, { cwd: srcDir, stdio: 'pipe' }).toString().trim();
+              if (timestamp) {
+                const isoUtc = new Date(parseInt(timestamp, 10) * 1000).toISOString().replace('.000Z', 'Z');
+                dateStr = ` (*${isoUtc}*)`;
+              }
+            } catch (e) {}
+          }
+          commitLine = `- WPT Commit: [\`${commitHash}\`](https://github.com/web-platform-tests/wpt/tree/${commitHash})${dateStr}\n`;
+        }
+      }
+
       const before = readmeContent.substring(0, startIndex + startTag.length);
       const after = readmeContent.substring(endIndex);
-      const replacement = `\n- PASS: ${passCount} / ${totalCount}\n- FAIL: ${failCount} / ${totalCount}\n`;
+      const replacement = `\n${commitLine}- PASS: ${passCount} / ${totalCount}\n- FAIL: ${failCount} / ${totalCount}\n`;
       
       readmeContent = before + replacement + after;
       fs.writeFileSync(readmePath, readmeContent, 'utf8');

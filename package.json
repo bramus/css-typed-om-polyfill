@@ -33,6 +33,7 @@
     "test:wpt:local": "npm run test:wpt:setup && cd tests/wpt/src && python wpt serve --inject-script ../../../build/typed-om-polyfill.iife.js",
     "test:wpt:setup": "node tests/wpt/scripts/checkout-wpt.mjs && node tests/wpt/scripts/download-firefox.mjs 153.0 && mkdir -p tests/wpt/report",
     "test:wpt:report": "node tests/wpt/scripts/generate-expected.js",
+    "test:wpt:update": "node tests/wpt/scripts/update-wpt.mjs",
     "prepack": "npm run test && npm run require-pristine-tree"
   },
   "keywords": [
