@@ -21,7 +21,7 @@
   },
   "scripts": {
     "clean": "rm -rf ./build",
-    "prebuild": "npm run clean",
+    "prebuild": "npm run clean && node scripts/download-ladybird-data.js",
     "build": "npm run build:module && npm run build:iife && npm run build:types",
     "build:module": "esbuild src/index.ts --sourcemap --bundle --outfile=build/index.js --platform=browser --format=esm",
     "build:iife": "esbuild src/index.ts --bundle --format=iife --outfile=build/typed-om-polyfill.iife.js",
