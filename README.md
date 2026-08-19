@@ -22,7 +22,7 @@ This project is fully tested using the official [Web Platform Tests (WPT)](https
 ## Installation
 
 ```bash
-npm install typed-om-polyfill
+npm install css-typed-om
 ```
 
 ## Usage
@@ -32,7 +32,7 @@ npm install typed-om-polyfill
 Simply import the package to automatically install the polyfill on the global scope:
 
 ```javascript
-import 'typed-om-polyfill';
+import 'css-typed-om';
 
 // Now you can use the typed OM API
 const element = document.querySelector('.my-element');
@@ -51,7 +51,7 @@ element.attributeStyleMap.set('margin-top', CSS.px(20));
 If you prefer to use the classes directly without relying on global patching (or for testing/Node environments):
 
 ```javascript
-import { CSSUnitValue, CSSKeywordValue } from 'typed-om-polyfill';
+import { CSSUnitValue, CSSKeywordValue } from 'css-typed-om';
 
 const width = new CSSUnitValue(100, 'px');
 const display = new CSSKeywordValue('block');
@@ -101,6 +101,10 @@ Or you can run them individually:
     # Update WPT to latest version
     npm run test:wpt:update
     ```
+
+## Acknowledgements
+
+The package name `css-typed-om` was kindly handed over by Jonathan Neal who authored the (now archived) https://github.com/csstools/css-typed-om project.
 
 ## License
 
