@@ -1,11 +1,11 @@
 {
-  "name": "typed-om-polyfill",
+  "name": "css-typed-om",
   "version": "1.0.0",
   "description": "A fully tested polyfill for the [CSS Typed OM Level 1 Specification](https://drafts.css-houdini.org/css-typed-om-1/).",
   "main": "build/index.js",
   "module": "build/index.js",
   "types": "build/index.d.ts",
-  "unpkg": "build/typed-om-polyfill.iife.js",
+  "unpkg": "build/css-typed-om.iife.js",
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
@@ -24,13 +24,13 @@
     "prebuild": "npm run clean",
     "build": "npm run build:module && npm run build:iife && npm run build:types",
     "build:module": "esbuild src/index.ts --sourcemap --bundle --outfile=build/index.js --platform=browser --format=esm",
-    "build:iife": "esbuild src/index.ts --bundle --format=iife --outfile=build/typed-om-polyfill.iife.js",
+    "build:iife": "esbuild src/index.ts --bundle --format=iife --outfile=build/css-typed-om.iife.js",
     "build:types": "tsc --declaration --emitDeclarationOnly --outFile build/index.d.ts",
     "require-pristine-tree": "exit $(git status --porcelain | wc -l)",
     "test": "npm run test:unit && npm run test:wpt",
     "test:unit": "npm run build && vitest run",
-    "test:wpt": "npm run build && npm run test:wpt:setup && cd tests/wpt/src && (python wpt run --headless -y --binary \"../firefox/Firefox 153.0.app/Contents/MacOS/firefox\" --log-wptreport ../report/data.json --log-wptscreenshot=../report/screenshots.txt --log-html=../report/index.html --inject-script ../../../build/typed-om-polyfill.iife.js firefox css/css-typed-om || true) && cd ../../../ && npm run test:wpt:report",
-    "test:wpt:local": "npm run test:wpt:setup && cd tests/wpt/src && python wpt serve --inject-script ../../../build/typed-om-polyfill.iife.js",
+    "test:wpt": "npm run build && npm run test:wpt:setup && cd tests/wpt/src && (python wpt run --headless -y --binary \"../firefox/Firefox 153.0.app/Contents/MacOS/firefox\" --log-wptreport ../report/data.json --log-wptscreenshot=../report/screenshots.txt --log-html=../report/index.html --inject-script ../../../build/css-typed-om.iife.js firefox css/css-typed-om || true) && cd ../../../ && npm run test:wpt:report",
+    "test:wpt:local": "npm run test:wpt:setup && cd tests/wpt/src && python wpt serve --inject-script ../../../build/css-typed-om.iife.js",
     "test:wpt:setup": "node tests/wpt/scripts/checkout-wpt.mjs && node tests/wpt/scripts/download-firefox.mjs 153.0 && mkdir -p tests/wpt/report",
     "test:wpt:report": "node tests/wpt/scripts/generate-expected.js",
     "prepack": "npm run test && npm run require-pristine-tree"
