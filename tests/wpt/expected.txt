@@ -9618,7 +9618,7 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/overflow-anchor.html
 OK	/css/css-typed-om/the-stylepropertymap/properties/overflow-clip-margin.html
 - PASS	'overflow-clip-margin' does not support '10px content-box'
 - PASS	'overflow-clip-margin' does not support 'border-box 10px'
-- PASS	Can set 'overflow-clip-margin' to a length: -3.14em
+- FAIL	Can set 'overflow-clip-margin' to a length: -3.14em
 - PASS	Can set 'overflow-clip-margin' to a length: 0px
 - PASS	Can set 'overflow-clip-margin' to a length: 3.14cm
 - PASS	Can set 'overflow-clip-margin' to a length: calc(0em + 0px)
@@ -10112,17 +10112,17 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/pointer-events.html
 - PASS	Setting 'pointer-events' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'pointer-events' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/position-visibility.html
-- PASS	'position-visibility' does not support 'anchors-valid anchors-visible no-overflow'
-- PASS	'position-visibility' does not support 'anchors-valid anchors-visible'
-- PASS	'position-visibility' does not support 'anchors-valid no-overflow'
-- PASS	'position-visibility' does not support 'anchors-visible no-overflow'
+- FAIL	'position-visibility' does not support 'anchor-valid anchor-visible no-overflow'
+- FAIL	'position-visibility' does not support 'anchor-valid anchor-visible'
+- FAIL	'position-visibility' does not support 'anchor-valid no-overflow'
+- FAIL	'position-visibility' does not support 'anchor-visible no-overflow'
 - PASS	Can set 'position-visibility' to CSS-wide keywords: inherit
 - PASS	Can set 'position-visibility' to CSS-wide keywords: initial
 - PASS	Can set 'position-visibility' to CSS-wide keywords: revert
 - PASS	Can set 'position-visibility' to CSS-wide keywords: unset
 - PASS	Can set 'position-visibility' to the 'always' keyword: always
-- PASS	Can set 'position-visibility' to the 'anchors-valid' keyword: anchors-valid
-- PASS	Can set 'position-visibility' to the 'anchors-visible' keyword: anchors-visible
+- FAIL	Can set 'position-visibility' to the 'anchor-valid' keyword: anchor-valid
+- FAIL	Can set 'position-visibility' to the 'anchor-visible' keyword: anchor-visible
 - PASS	Can set 'position-visibility' to the 'no-overflow' keyword: no-overflow
 - PASS	Can set 'position-visibility' to var() references:  var(--A)
 - PASS	Setting 'position-visibility' to a flexible length: -3.14fr throws TypeError
