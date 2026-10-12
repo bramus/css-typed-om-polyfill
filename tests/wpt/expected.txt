@@ -11814,15 +11814,15 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/text-autospace.html
 - PASS	Setting 'text-autospace' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'text-autospace' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/text-box-trim.html
-- FAIL	Can set 'text-box-trim' to CSS-wide keywords: inherit
-- FAIL	Can set 'text-box-trim' to CSS-wide keywords: initial
-- FAIL	Can set 'text-box-trim' to CSS-wide keywords: revert
-- FAIL	Can set 'text-box-trim' to CSS-wide keywords: unset
-- FAIL	Can set 'text-box-trim' to the 'none' keyword: none
-- FAIL	Can set 'text-box-trim' to the 'trim-both' keyword: trim-both
-- FAIL	Can set 'text-box-trim' to the 'trim-end' keyword: trim-end
-- FAIL	Can set 'text-box-trim' to the 'trim-start' keyword: trim-start
-- FAIL	Can set 'text-box-trim' to var() references:  var(--A)
+- PASS	Can set 'text-box-trim' to CSS-wide keywords: inherit
+- PASS	Can set 'text-box-trim' to CSS-wide keywords: initial
+- PASS	Can set 'text-box-trim' to CSS-wide keywords: revert
+- PASS	Can set 'text-box-trim' to CSS-wide keywords: unset
+- PASS	Can set 'text-box-trim' to the 'none' keyword: none
+- PASS	Can set 'text-box-trim' to the 'trim-both' keyword: trim-both
+- PASS	Can set 'text-box-trim' to the 'trim-end' keyword: trim-end
+- PASS	Can set 'text-box-trim' to the 'trim-start' keyword: trim-start
+- PASS	Can set 'text-box-trim' to var() references:  var(--A)
 - PASS	Setting 'text-box-trim' to a flexible length: -3.14fr throws TypeError
 - PASS	Setting 'text-box-trim' to a flexible length: 0fr throws TypeError
 - PASS	Setting 'text-box-trim' to a flexible length: 1fr throws TypeError
@@ -12693,7 +12693,7 @@ OK	/css/css-typed-om/the-stylepropertymap/properties/transform-style.html
 - PASS	Setting 'transform-style' to an angle: 3.14rad throws TypeError
 - PASS	Setting 'transform-style' to an angle: calc(0deg + 0deg) throws TypeError
 OK	/css/css-typed-om/the-stylepropertymap/properties/transform.html
-- FAIL	'transform' does not support 'matrix(sibling-index(), 2, 3, 4, 5 ,6)'
+- PASS	'transform' does not support 'matrix(sibling-index(), 2, 3, 4, 5 ,6)'
 - FAIL	Can set 'transform' to a transform: perspective(calc(10em))
 - FAIL	Can set 'transform' to a transform: translate(50%, 50%)
 - FAIL	Can set 'transform' to a transform: translate3d(0px, 1px, 2px) translate(0px, 1px) rotate3d(1, 2, 3, 45deg) rotate(45deg) scale3d(1, 2, 3) scale(1, 2) skew(1deg, 1deg) skewX(1deg) skewY(45deg) perspective(1px) matrix3d(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16) matrix(1, 2, 3, 4, 5, 6)

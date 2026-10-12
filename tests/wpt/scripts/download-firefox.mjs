@@ -9,7 +9,7 @@ import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const version = argv[2] || '153.0';
+const version = argv[2] || '157.0';
 const targetDir = path.resolve(__dirname, '../firefox');
 const appDir = path.join(targetDir, `Firefox ${version}.app`);
 const dmgFile = path.join(targetDir, `Firefox ${version}.dmg`);
@@ -69,6 +69,7 @@ if (!existsSync(userJs)) {
 user_pref("app.update.enabled", false);
 user_pref("browser.shell.checkDefaultBrowser", false);
 user_pref("browser.tabs.remote.autostart", false);
+user_pref("layout.css.typed-om.enabled", false);
 `;
   writeFileSync(userJs, prefs, 'utf8');
   console.log('✔ done');
